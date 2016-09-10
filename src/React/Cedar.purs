@@ -28,7 +28,7 @@ type Dispatcher action = action -> EventHandler
 -- | Type synonym for the `yield` function which takes a function from the
 -- | current state to the new state of the component and asynchronously
 -- | updates it.
-type Yielder state = (state -> state) -> Aff (state :: React.ReactState React.ReadWrite) state
+type Yielder state eff = (state -> state) -> Aff (state :: React.ReactState React.ReadWrite | eff) state
 
 -- | Type synonym for an action handler which takes a `Yielder` supplied by
 -- | React's internal rendering function, the dispatched action and the
@@ -36,7 +36,7 @@ type Yielder state = (state -> state) -> Aff (state :: React.ReactState React.Re
 -- |
 -- | The supplied `yield` function asynchronously updates the component's state.
 type Update state props action eff
-   = Yielder state
+   = Yielder state eff
   -> action
   -> props
   -> state
@@ -72,10 +72,10 @@ spec' state action update render = (React.spec state (getReactRender update rend
 
 --
 --
-mkYielder :: ∀ props state. React.ReactThis props state -> Yielder state
+mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state eff
 mkYielder this = yield
   where
-    yield :: Yielder state
+    yield :: Yielder state eff
     yield f = makeAff \_ resolve -> unsafeInterleaveEff $ void do
       old <- React.readState this
       let new = f old
