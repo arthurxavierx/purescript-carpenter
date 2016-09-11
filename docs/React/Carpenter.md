@@ -1,9 +1,9 @@
-## Module React.Cedar
+## Module React.Carpenter
 
 #### `EventHandler`
 
 ``` purescript
-type EventHandler = forall eff. Eff (props :: ReactProps, refs :: ReactRefs (read :: Read), state :: ReactState ReadWrite | eff) Unit
+type EventHandler = forall eff. Eff (state :: ReactState ReadWrite | eff) Unit
 ```
 
 General purpose event handler for React events.
@@ -20,7 +20,7 @@ Takes an action of type `action` and returns an `EventHandler`.
 #### `Yielder`
 
 ``` purescript
-type Yielder state = (state -> state) -> Aff (state :: ReactState ReadWrite) state
+type Yielder state eff = (state -> state) -> Aff (state :: ReactState ReadWrite | eff) state
 ```
 
 Type synonym for the `yield` function which takes a function from the
@@ -30,7 +30,7 @@ updates it.
 #### `Update`
 
 ``` purescript
-type Update state props action eff = Yielder state -> action -> props -> state -> Aff eff state
+type Update state props action eff = Yielder state eff -> action -> props -> state -> Aff (state :: ReactState ReadWrite | eff) state
 ```
 
 Type synonym for an action handler which takes a `Yielder` supplied by
@@ -68,5 +68,11 @@ spec' :: forall state props action eff. state -> action -> Update state props ac
 
 Constructs a React component spec based on an initial state,
 an initial action, an update function and a render function.
+
+#### `mkYielder`
+
+``` purescript
+mkYielder :: forall props state eff. ReactThis props state -> Yielder state eff
+```
 
 
