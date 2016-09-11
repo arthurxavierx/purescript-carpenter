@@ -1,4 +1,4 @@
-module React.Cedar
+module React.Carpenter
   ( spec
   , spec'
   , Render
@@ -6,6 +6,7 @@ module React.Cedar
   , Yielder
   , Dispatcher
   , EventHandler
+  , mkYielder
   ) where
 
 import Prelude
@@ -68,8 +69,6 @@ spec' state action update render = (React.spec state (getReactRender update rend
       let yield = mkYielder this
       unsafeInterleaveEff (launchAff (update yield action props state))
 
---
---
 mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state eff
 mkYielder this = yield
   where
@@ -79,7 +78,9 @@ mkYielder this = yield
       let new = f old
       React.writeStateWithCallback this new (unsafeInterleaveEff $ resolve new)
 
-getReactRender :: ∀ state props action eff . Update state props action eff -> Render state props action -> React.Render props state eff
+--
+--
+getReactRender :: ∀ state props action eff. Update state props action eff -> Render state props action -> React.Render props state eff
 getReactRender update render this = do
   props <- React.getProps this
   state <- React.readState this
