@@ -23,7 +23,7 @@ updateCounter yield action _ _ =
       yield id
 
 renderCounter :: ∀ props. Render Counter props CounterAction
-renderCounter dispatch _ state =
+renderCounter dispatch _ state _ =
   div'
     [ span' [text (show state)]
     , button [onClick \_ -> dispatch Increment] [text "+"]
@@ -54,7 +54,7 @@ updateCounterList yield action _ _ =
           yield id
 
 renderCounterList :: ∀ props. Render CounterList props CounterListAction
-renderCounterList dispatch _ state =
+renderCounterList dispatch _ state _ =
   div'
     [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state
     , button [onClick \_ -> dispatch Add] [text "++"]

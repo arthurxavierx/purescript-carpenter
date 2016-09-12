@@ -23,7 +23,7 @@ update yield action _ _ =
       yield (_ - 1)
 
 render :: ∀ props. Render State props Action
-render dispatch _ state =
+render dispatch _ state _ =
   div'
     [ span' [text (show state)]
     , button [onClick \_ -> dispatch Increment] [text "+"]
