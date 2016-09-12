@@ -84,10 +84,10 @@ mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state e
 mkYielder this = yield
   where
     yield :: Yielder state eff
-    yield f = makeAff \_ resolve -> unsafeInterleaveEff $ void do
+    yield f = makeAff \_ resolve -> void do
       old <- React.readState this
       let new = f old
-      React.writeStateWithCallback this new (unsafeInterleaveEff $ resolve new)
+      React.writeStateWithCallback this new (resolve new)
 
 --
 --
