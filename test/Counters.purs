@@ -1,22 +1,19 @@
 module Test.Counters where
 
 import Prelude
+import Carpenter (Update, Render, ActionHandler)
+import Carpenter.Cedar (CedarClass, spec, capture')
 import Data.Array (mapWithIndex, snoc, deleteAt)
 import Data.Maybe (fromMaybe)
-import React (createClass)
-import React.Carpenter (Update, Render)
-import React.Carpenter.Elm (ElmClass, spec, capture')
+import React (ReactElement, createClass)
 import React.DOM (button, div', text, span')
 import React.DOM.Props (onClick)
 
 type Counter = Int
 data CounterAction = Increment | Decrement | Remove
 
-type CounterList = Array Counter
-data CounterListAction = Add | CounterAction Int CounterAction
-
 updateCounter :: ∀ props eff. Update Counter props CounterAction eff
-updateCounter yield action _ state =
+updateCounter yield action _ _ =
   case action of
     Increment ->
       yield (_ + 1)
@@ -34,11 +31,18 @@ renderCounter dispatch _ state =
     , button [onClick \_ -> dispatch Remove] [text "X"]
     ]
 
-counterClass :: ElmClass Counter CounterAction
+counterClass :: CedarClass Counter CounterAction
 counterClass = createClass $ spec updateCounter renderCounter
 
+counter :: ActionHandler CounterAction -> Counter -> ReactElement
+counter = capture' counterClass
+
+--
+type CounterList = Array Counter
+data CounterListAction = Add | CounterAction Int CounterAction
+
 updateCounterList :: ∀ props eff. Update CounterList props CounterListAction eff
-updateCounterList yield action _ state =
+updateCounterList yield action _ _ =
   case action of
     Add ->
       yield \state -> snoc state 0
@@ -52,9 +56,9 @@ updateCounterList yield action _ state =
 renderCounterList :: ∀ props. Render CounterList props CounterListAction
 renderCounterList dispatch _ state =
   div'
-    [ div' $ mapWithIndex (\i c -> capture' counterClass (dispatch <<< CounterAction i) c) state
+    [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state
     , button [onClick \_ -> dispatch Add] [text "++"]
     ]
 
-counterListClass :: ElmClass CounterList CounterListAction
+counterListClass :: CedarClass CounterList CounterListAction
 counterListClass = createClass $ spec updateCounterList renderCounterList
