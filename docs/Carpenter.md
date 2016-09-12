@@ -1,4 +1,4 @@
-## Module React.Carpenter
+## Module Carpenter
 
 #### `EventHandler`
 
@@ -7,6 +7,21 @@ type EventHandler = forall eff. Eff (state :: ReactState ReadWrite | eff) Unit
 ```
 
 General purpose event handler for React events.
+
+#### `ActionHandler`
+
+``` purescript
+type ActionHandler action = action -> EventHandler
+```
+
+Handler for dispatches of actions.
+Useful when handling actions dispatched by child components, e.g.:
+
+```purescript
+type MyProps = { onSubmit :: ActionHandler MyAction }
+-- ...
+createFactory myComponentClass {onSubmit: dispatch AnotherAction}
+```
 
 #### `Dispatcher`
 

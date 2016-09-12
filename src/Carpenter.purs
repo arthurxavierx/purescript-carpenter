@@ -1,4 +1,4 @@
-module React.Carpenter
+module Carpenter
   ( spec
   , spec'
   , Render
@@ -6,6 +6,7 @@ module React.Carpenter
   , Yielder
   , Dispatcher
   , EventHandler
+  , ActionHandler
   , mkYielder
   ) where
 
@@ -19,6 +20,16 @@ import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
 type EventHandler = ∀ eff. Eff
   ( state :: React.ReactState React.ReadWrite
   | eff) Unit
+
+-- | Handler for dispatches of actions.
+-- | Useful when handling actions dispatched by child components, e.g.:
+-- |
+-- | ```purescript
+-- | type MyProps = { onSubmit :: ActionHandler MyAction }
+-- | -- ...
+-- | createFactory myComponentClass {onSubmit: dispatch AnotherAction}
+-- | ```
+type ActionHandler action = action -> EventHandler
 
 -- | Type synonym for the action dispatcher function `dispatch`.
 -- | Takes an action of type `action` and returns an `EventHandler`.
