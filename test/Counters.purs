@@ -12,7 +12,7 @@ import React.DOM.Props (onClick)
 type Counter = Int
 data CounterAction = Increment | Decrement | Remove
 
-updateCounter :: ∀ props eff. Update Counter props CounterAction eff
+updateCounter :: forall props eff. Update Counter props CounterAction eff
 updateCounter yield action _ _ =
   case action of
     Increment ->
@@ -22,7 +22,7 @@ updateCounter yield action _ _ =
     Remove ->
       yield id
 
-renderCounter :: ∀ props. Render Counter props CounterAction
+renderCounter :: forall props. Render Counter props CounterAction
 renderCounter dispatch _ state _ =
   div'
     [ span' [text (show state)]
@@ -41,7 +41,7 @@ counter = capture' counterClass
 type CounterList = Array Counter
 data CounterListAction = Add | CounterAction Int CounterAction
 
-updateCounterList :: ∀ props eff. Update CounterList props CounterListAction eff
+updateCounterList :: forall props eff. Update CounterList props CounterListAction eff
 updateCounterList yield action _ _ =
   case action of
     Add ->
@@ -53,7 +53,7 @@ updateCounterList yield action _ _ =
         _ ->
           yield id
 
-renderCounterList :: ∀ props. Render CounterList props CounterListAction
+renderCounterList :: forall props. Render CounterList props CounterListAction
 renderCounterList dispatch _ state _ =
   div'
     [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state

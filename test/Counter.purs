@@ -12,7 +12,7 @@ type State = Int
 
 data Action = Init | Increment | Decrement
 
-update :: ∀ props eff. Update State props Action (console :: CONSOLE | eff)
+update :: forall props eff. Update State props Action (console :: CONSOLE | eff)
 update yield action _ _ =
   case action of
     Init -> do
@@ -25,7 +25,7 @@ update yield action _ _ =
       liftEff $ log "Decrementing"
       yield (_ - 1)
 
-render :: ∀ props. Render State props Action
+render :: forall props. Render State props Action
 render dispatch _ state _ =
   div'
     [ span' [text (show state)]
@@ -33,5 +33,5 @@ render dispatch _ state _ =
     , button [onClick \_ -> dispatch Decrement] [text "-"]
     ]
 
-counterClass :: ∀ props. ReactClass props
+counterClass :: forall props. ReactClass props
 counterClass = createClass $ spec 0 update render
