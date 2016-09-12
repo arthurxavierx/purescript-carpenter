@@ -10,9 +10,8 @@ Carpenter provides an interface to React in PureScript, highly insired by inspir
 Carpenter also provides simple patterns and architectures for dealing with more complex applications.
 
 - [Module Documentation](docs/)
-
-## Related Modules
-- [React](https://github.com/purescript-contrib/purescript-react)
+- [Counter example](test/Counter.purs)
+- [Counter list example (Elm architecture)](test/Counters.purs)
 
 ## Install
 
