@@ -57,7 +57,7 @@ The supplied `yield` function asynchronously updates the component's state.
 #### `Render`
 
 ``` purescript
-type Render state props action = Dispatcher action -> props -> state -> ReactElement
+type Render state props action = Dispatcher action -> props -> state -> Array ReactElement -> ReactElement
 ```
 
 Type synonym for a pure render function which takes a `Dispatcher` supplied

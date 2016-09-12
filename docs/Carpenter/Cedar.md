@@ -3,8 +3,10 @@
 #### `CedarProps`
 
 ``` purescript
-type CedarProps state action = { state :: state, release :: action -> EventHandler }
+type CedarProps state action = { initialState :: state, handler :: ActionHandler action }
 ```
+
+Type synonym for internal props of Cedar components.
 
 #### `CedarClass`
 
@@ -12,16 +14,44 @@ type CedarProps state action = { state :: state, release :: action -> EventHandl
 type CedarClass state action = ReactClass (CedarProps state action)
 ```
 
+Type synonym for a ReactClass using the Cedar architecture with specific
+types for the component's state and actions.
+
 #### `spec`
 
 ``` purescript
 spec :: forall state action eff. Update state (CedarProps state action) action eff -> Render state (CedarProps state action) action -> ReactSpec (CedarProps state action) state eff
 ```
 
+Creates a `ReactSpec` using the Cedar architecture for the component based
+on the supplied update and render functions.
+
+The Cedar architecture is highly based on the Elm architecture but it
+allows the existance of multiple sources of truth. That means it allow you
+to break the upward bubbling of actions up to the root component. You can
+choose to capture or ignore the actions dispatched by child components
+using the `capture` and `ignore` functions respectively.
+
 #### `capture`
 
 ``` purescript
 capture :: forall state action. ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> Array ReactElement -> ReactElement
+```
+
+Creates an element of the specificed React class with initial state
+and children and captures its dispatched actions.
+
+`capture` and `capture'` and mostly used to dispatch actions to the parent
+component based on actions dispatched to the child component, e.g:
+
+```purescript
+data MyParentAction
+  = ActionA
+  | ActionB String
+  | ChildAction MyChildAction
+-- ...
+render :: forall props. Render MyParentState props MyParentAction
+capture myChildClass (dispatch <<< ParentAction) 0 []
 ```
 
 #### `capture'`
@@ -35,6 +65,9 @@ capture' :: forall state action. ReactClass (CedarProps state action) -> (action
 ``` purescript
 ignore :: forall state action. ReactClass (CedarProps state action) -> state -> Array ReactElement -> ReactElement
 ```
+
+Creates an element of the specificed React class with initial state
+and children and ignores its dispatched actions.
 
 #### `ignore'`
 
