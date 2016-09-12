@@ -61,6 +61,7 @@ type Render state props action
    = Dispatcher action
   -> props
   -> state
+  -> Array React.ReactElement
   -> React.ReactElement
 
 -- | Constructs a React component based on an initial state, an update function
@@ -95,7 +96,8 @@ getReactRender :: ∀ state props action eff. Update state props action eff -> R
 getReactRender update render this = do
   props <- React.getProps this
   state <- React.readState this
+  children <- React.getChildren this
   let yield = mkYielder this
   let dispatch :: Dispatcher action
       dispatch action = void $ unsafeInterleaveEff (launchAff (update yield action props state))
-  pure $ render dispatch props state
+  pure $ render dispatch props state children

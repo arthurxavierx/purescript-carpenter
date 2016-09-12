@@ -31,12 +31,13 @@ spec update render = React.spec' getInitialState (getReactRender update render)
     getReactRender update render this = do
       props <- React.getProps this
       state <- React.readState this
+      children <- React.getChildren this
       let yield = mkYielder this
       let dispatch :: Dispatcher action
           dispatch action = void $ do
             props.handler action
             unsafeInterleaveEff (launchAff (update yield action props state))
-      pure $ render dispatch props state
+      pure $ render dispatch props state children
 
 capture :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
 capture reactClass handler state children = React.createElement reactClass {initialState: state, handler: handler} children

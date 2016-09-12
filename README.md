@@ -74,7 +74,7 @@ The last piece for our Counter component is the _rendering_ function, which must
 
 ```purescript
 render :: C.Render State _ Action
-render dispatch _ state =
+render dispatch _ state _ =
   R.div'
     [ R.span' [ R.text (show state) ]
     , R.button [ P.onClick \_ -> dispatch Increment ] [ R.text "+" ]
