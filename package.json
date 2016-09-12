@@ -1,0 +1,45 @@
+{
+  "name": "purescript-carpenter",
+  "author": "Arthur Xavier <arthur.xavierx@gmail.com> (http://arthur-xavier.github.io/)",
+  "description": "Simple architecture for purescript-react inspired by Elm and Thermite",
+  "scripts": {
+    "build": "psa \"src/**/*.purs\" \"bower_components/purescript-*/src/**/*.purs\" --censor-lib --strict",
+    "commit": "./node_modules/.bin/git-cz",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthur-xavier/purescript-carpenter.git"
+  },
+  "keywords": [
+    "purescript",
+    "react",
+    "elm",
+    "redux",
+    "state"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arthur-xavier/purescript-carpenter/issues"
+  },
+  "homepage": "https://github.com/arthur-xavier/purescript-carpenter#readme",
+  "devDependencies": {
+    "commitizen": "^2.8.6",
+    "cz-conventional-changelog": "^1.2.0",
+    "purescript": "^0.9.3",
+    "purescript-psa": "^0.3.9",
+    "semantic-release": "^4.3.5"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    },
+    "ghooks": {
+      "pre-commit": "npm run build"
+    }
+  }
+}
