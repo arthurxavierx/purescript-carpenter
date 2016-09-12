@@ -10,13 +10,13 @@ module Carpenter.Cedar
 
 import Prelude
 import React as React
-import Carpenter (Dispatcher, mkYielder, Render, Update, EventHandler)
+import Carpenter (ActionHandler, Dispatcher, mkYielder, Render, Update, EventHandler)
 import Control.Monad.Aff (launchAff)
 import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
 
 type CedarProps state action =
   { initialState :: state
-  , release :: action -> EventHandler
+  , handler :: ActionHandler action
   }
 
 type CedarClass state action = React.ReactClass (CedarProps state action)
@@ -34,18 +34,18 @@ spec update render = React.spec' getInitialState (getReactRender update render)
       let yield = mkYielder this
       let dispatch :: Dispatcher action
           dispatch action = void $ do
-            props.release action
+            props.handler action
             unsafeInterleaveEff (launchAff (update yield action props state))
       pure $ render dispatch props state
 
 capture :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
-capture reactClass release state children = React.createElement reactClass {initialState: state, release: release} children
+capture reactClass handler state children = React.createElement reactClass {initialState: state, handler: handler} children
 
 capture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> React.ReactElement
-capture' reactClass release state = React.createFactory reactClass {initialState: state, release: release}
+capture' reactClass handler state = React.createFactory reactClass {initialState: state, handler: handler}
 
 ignore :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> Array React.ReactElement -> React.ReactElement
-ignore reactClass state children = React.createElement reactClass {initialState: state, release: \_ -> pure unit} children
+ignore reactClass state children = React.createElement reactClass {initialState: state, handler: \_ -> pure unit} children
 
 ignore' :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> React.ReactElement
-ignore' reactClass state = React.createFactory reactClass {initialState: state, release: \_ -> pure unit}
+ignore' reactClass state = React.createFactory reactClass {initialState: state, handler: \_ -> pure unit}
