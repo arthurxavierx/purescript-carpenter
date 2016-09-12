@@ -10,11 +10,14 @@ import React.DOM.Props (onClick)
 
 type State = Int
 
-data Action = Increment | Decrement
+data Action = Init | Increment | Decrement
 
 update :: ∀ props eff. Update State props Action (console :: CONSOLE | eff)
 update yield action _ _ =
   case action of
+    Init -> do
+      liftEff $ log "Initializing"
+      yield (const 0)
     Increment -> do
       liftEff $ log "Incrementing"
       yield (_ + 1)

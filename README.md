@@ -96,3 +96,41 @@ R.createFactory counterClass {}
 -- or
 R.createElement counterClass {} []
 ```
+
+## Effectful actions
+
+In many applications, one may want to perform effects (even asynchronous ones) when initializing a component, in response to some event or user action.
+
+For that matter, Carpenter's _update_ function uses the `Aff` monad, which allows us to perform asynchronous effects in response to dispatched actions.
+
+Carpenter also provides an alternative function for defining component specifications `spec'` which allows us to set an initial action (instead of an initial state) for a component; enabling, thus, a way of performing effects when instantiating a component.
+
+### Counter example with logging to the console
+
+We'll modify the above defined _Counter_ component so that we can log to the console when the component is initialized, and when the counter gets incremented or decremented. For that we need only to add a new action `Init` to the `Action` type, change the `update` function and the way we create the `counterClass` React class to use the `spec'` function:
+
+```purescript
+update :: forall eff. C.Update State _ Action (console :: CONSOLE | eff)
+update yield action _ _ =
+  case action of
+    Init -> do
+      liftEff $ log "Initializing"
+      yield (const 0)
+    Increment -> do
+      liftEff $ log "Incrementing"
+      yield (_ + 1)
+    Decrementing -> do
+      liftEff $ log "Decrementing"
+      yield (_ -  1)
+```
+
+`liftEff` is needed because the Update function operates inside the `Aff` monad.
+
+```purescript
+data Action = Init | Increment | Decrement
+```
+
+```purescript
+counterClass :: ReactClass _
+counterClass = R.createClass $ C.spec' Init update render
+```
