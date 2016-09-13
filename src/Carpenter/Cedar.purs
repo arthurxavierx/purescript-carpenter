@@ -1,5 +1,5 @@
 module Carpenter.Cedar
-  ( spec
+  ( cedarSpec
   , capture
   , capture'
   , ignore
@@ -32,12 +32,12 @@ type CedarClass state action = React.ReactClass (CedarProps state action)
 -- | to break the upward bubbling of actions up to the root component. You can
 -- | choose to capture or ignore the actions dispatched by child components
 -- | using the `capture` and `ignore` functions respectively.
-spec
+cedarSpec
   :: ∀ state action eff
    . Update state (CedarProps state action) action eff
   -> Render state (CedarProps state action) action
   -> React.ReactSpec (CedarProps state action) state eff
-spec update render = React.spec' getInitialState (getReactRender update render)
+cedarSpec update render = React.spec' getInitialState (getReactRender update render)
   where
     getInitialState :: React.GetInitialState (CedarProps state action) state eff
     getInitialState this = React.getProps this >>= pure <<< _.initialState

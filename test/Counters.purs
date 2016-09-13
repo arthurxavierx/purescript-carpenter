@@ -1,15 +1,16 @@
 module Test.Counters where
 
 import Prelude
-import Carpenter (Update, Render, ActionHandler)
-import Carpenter.Cedar (CedarClass, spec, capture')
+import Carpenter (spec, Update, Render, ActionHandler)
+import Carpenter.Cedar (CedarClass, cedarSpec, capture')
 import Data.Array (mapWithIndex, snoc, deleteAt)
 import Data.Maybe (fromMaybe)
-import React (ReactElement, createClass)
+import React (ReactClass, ReactElement, createClass)
 import React.DOM (button, div', text, span')
 import React.DOM.Props (onClick)
 
 type Counter = Int
+
 data CounterAction = Increment | Decrement | Remove
 
 updateCounter :: forall props eff. Update Counter props CounterAction eff
@@ -32,13 +33,14 @@ renderCounter dispatch _ state _ =
     ]
 
 counterClass :: CedarClass Counter CounterAction
-counterClass = createClass $ spec updateCounter renderCounter
+counterClass = createClass $ cedarSpec updateCounter renderCounter
 
 counter :: ActionHandler CounterAction -> Counter -> ReactElement
 counter = capture' counterClass
 
 --
 type CounterList = Array Counter
+
 data CounterListAction = Add | CounterAction Int CounterAction
 
 updateCounterList :: forall props eff. Update CounterList props CounterListAction eff
@@ -60,5 +62,5 @@ renderCounterList dispatch _ state _ =
     , button [onClick \_ -> dispatch Add] [text "++"]
     ]
 
-counterListClass :: CedarClass CounterList CounterListAction
-counterListClass = createClass $ spec updateCounterList renderCounterList
+counterListClass :: ReactClass _
+counterListClass = createClass $ spec [0] updateCounterList renderCounterList

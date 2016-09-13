@@ -33,5 +33,5 @@ render dispatch _ state _ =
     , button [onClick \_ -> dispatch Decrement] [text "-"]
     ]
 
-counterClass :: forall props. ReactClass props
+counterClass :: ReactClass _
 counterClass = createClass $ spec 0 update render
