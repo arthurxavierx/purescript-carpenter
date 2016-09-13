@@ -10,7 +10,7 @@
 Carpenter provides an interface to React in PureScript, highly insired by inspired by [Elm](http://elm-lang.org/) and [Thermite](https://github.com/paf31/purescript-thermite).
 Carpenter also provides simple patterns and architectures for dealing with more complex applications.
 
-- [Module Documentation](docs/)
+- [Module Documentation](https://pursuit.purescript.org/packages/purescript-carpenter)
 - [Counter example](test/Counter.purs)
 - [Counter list example (Elm architecture)](test/Counters.purs)
 
