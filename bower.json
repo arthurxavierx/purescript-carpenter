@@ -6,6 +6,7 @@
     "bower_components",
     "output"
   ],
+  "license": "MIT",
   "dependencies": {
     "purescript-react": "^1.1.0",
     "purescript-aff": "^1.1.0"
