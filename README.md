@@ -160,3 +160,169 @@ parentClass = R.createClass $ C.spec {} parentUpdate parentRender
 ```
 
 The above example creates a class of a component which contains a heading text which says _"Here are 5 counters"_ followed by a list of 5 counters.
+
+### Using `EventHandler` for simple event callbacks
+
+When building complex applications, most of the time, simple combinations of components are not enough. We want the components to communicate and interact with each other.
+
+Suppose we have en editable text field component called `editText` with state and action types `type EditTextState = String` and `data EditTextAction = Change String | Submit` respectively. We want a parent component to update an _email_ value when the user submits its changes in the text field. For that we can use event callbacks and have them inside our text field _props_:
+
+```purescript
+type EditTextState = String
+
+data EditTextAction = Change String | Submit
+
+type EditTextProps =
+  { onSubmit :: EditTextState -> C.EventHandler
+  }
+
+updateEditText :: forall eff. C.Update EditTextState EditTextProps EditTextAction eff
+updateEditText yield action props state =
+  Change value ->
+    yield (const value)
+  Submit ->
+    props.onSubmit state
+    yield id
+
+renderEditText :: C.Render EditTextState EditTextProps EditTextAction
+renderEditText dispatch props state _ =
+  R.input
+    [ P._type "text"
+    , P.onKeyUp \e ->
+        if e.charCode == 13
+          then dispatch Submit
+          else dispatch (Change $ state <> e.key)
+    ]
+
+editTextClass :: R.ReactClass EditTextProps
+editTextClass = R.createClass $ spec '' updateEditText renderEditText
+
+editText :: (EditTextState -> C.EventHandler) -> R.ReactElement
+editText onSubmit = R.createFactory editTextClass { onSubmit: onSubmit }
+```
+
+And on our parent component we can have:
+
+```purescript
+type ParentState =
+  { email :: String
+  , password :: String
+  , ...
+  }
+
+data Action = ChangeEmail String | ChangePassword String | ...
+
+renderParent :: C.Render ParentState _ ParentAction
+renderParent dispatch _ _ _ =
+  R.div'
+    [ R.h3' [ R.text "Email" ]
+    , editText (dispatch <<< ChangeEmail)
+    ]
+```
+
+Now, whenever the user presses the _enter_ key on our text field component, the `onSubmit` event handler gets called and a `ChangeEmail` action is dispatched to the parent component.
+
+### The Elm architecture with `Carpenter.Cedar`
+
+It is easy to see the above exemplified architecture doesn't scale very well. It is way too specific, and, for large applications, many event handlers would be needed and managing all this tightly coupled states, actions and effects can be quite cumbersome.
+
+With the above defined architecture it's also not possible to initialize components with some state in a simple manner without defining an initial action.
+
+For solving these problems we can do some low level machinery and generalize the event handlers for taking the actions of child components instead of their state. This way we can emulate [the Elm architecture](https://guide.elm-lang.org/architecture/).
+
+This emulation of the Elm architecture with Carpenter is called `Cedar`, because it is not exactly like the Elm architecture, since it allows for multiple sources of truth instead of only one, as Elm does. This gives us freedom to break the chain of action propagation at any point, by simply ignoring the actions of child components with the `ignore` function.
+
+#### List of counters example
+
+A counter component for a list of counters is almost the same as our simple counter component defined above. The difference is that now we can remove a counter too. But a counter can't remove itself, because it's an isolated, independent component. It can also exist without being inside a list of counters, so we must do nothing within the counter component when we receive a `Remove` action.
+
+To write our new component we must now import `Carpenter.Cedar`:
+
+```purescript
+import Carpenter.Cedar as C
+```
+
+```purescript
+type Counter = Int
+
+data CounterAction = Increment | Decrement | Remove
+
+updateCounter :: forall props eff. C.Update Counter props CounterAction eff
+updateCounter yield action _ _ =
+  case action of
+    Increment ->
+      yield (_ + 1)
+    Decrement ->
+      yield (_ - 1)
+    Remove ->
+      yield id
+
+renderCounter :: forall props. C.Render Counter props CounterAction
+renderCounter dispatch _ state _ =
+  div'
+    [ span' [text (show state)]
+    , button [onClick \_ -> dispatch Increment] [text "+"]
+    , button [onClick \_ -> dispatch Decrement] [text "-"]
+    , button [onClick \_ -> dispatch Remove] [text "X"]
+    ]
+
+counterClass :: C.CedarClass Counter CounterAction
+counterClass = createClass $ C.cedarSpec updateCounter renderCounter
+
+counter :: ActionHandler CounterAction -> Counter -> ReactElement
+counter = capture' counterClass
+```
+
+Our counter component is now defined to have its actions captured by its parent components. It's also defined in a way that we can set the initial value of the counter in a very straightforward fashion.
+
+Now, the parent component, the list of counters can be defined in the same way we defined our first components. That is, we must not use Cedar for every component in the application.
+
+Let's first define the _state_ and _action_ types of our component:
+
+```purescript
+type CounterList = Array Counter
+
+data CounterListAction = Add | CounterAction Int CounterAction
+```
+
+The state of our list of counters is simply a List or `Array` of `Counter` values, which are integer numbers in fact. The actions our component can take are to add a new counter or an action from a specific counter indexed by its position in the array of counters.
+
+The _update_ function for the list of counters must only append a new counter to the array on an `Add` action, and remove a counter from the array when of a `Remove` action from a child counter:
+
+```purescript
+updateCounterList :: forall props eff. C.Update CounterList props CounterListAction eff
+updateCounterList yield action _ _ =
+  case action of
+    Add ->
+      yield \state -> snoc state 0
+    CounterAction i caction ->
+      case caction of
+        Remove ->
+          yield \state -> fromMaybe state $ deleteAt i state
+        _ ->
+          yield id
+```
+
+For the _render_ function, the only thing missing is to render all the counters from the array and map its actions to the actions of the counter list. This can be done by using the `capture` function from `Carpenter.Cedar`, as in the definition of the `counter` function:
+
+```purescript
+capture counterClass (dispatch <<< CounterAction index) count
+```
+
+Thus, for the `renderCounterList` we have:
+
+```purescript
+renderCounterList :: forall props. C.Render CounterList props CounterListAction
+renderCounterList dispatch _ state _ =
+  div'
+    [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state
+    , button [onClick \_ -> dispatch Add] [text "++"]
+    ]
+```
+
+And last but not least, as stated above, we must not use Cedar for all the components. Our `counterList` component can be defined using Carpenter's simple specs.
+
+```purescript
+counterListClass :: R.ReactClass _
+counterListClass = createClass $ spec [0] updateCounterList renderCounterList
+```
