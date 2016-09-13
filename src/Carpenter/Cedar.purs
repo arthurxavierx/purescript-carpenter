@@ -43,10 +43,16 @@ cedarSpec
    . Update state (CedarProps state action) action eff
   -> Render state (CedarProps state action) action
   -> React.ReactSpec (CedarProps state action) state eff
-cedarSpec update render = React.spec' getInitialState (getReactRender update render)
+cedarSpec update render = reactSpec { componentWillReceiveProps = componentWillReceiveProps }
   where
+    reactSpec :: React.ReactSpec (CedarProps state action) state eff
+    reactSpec = React.spec' getInitialState (getReactRender update render)
+
     getInitialState :: React.GetInitialState (CedarProps state action) state eff
     getInitialState this = React.getProps this >>= pure <<< _.initialState
+
+    componentWillReceiveProps :: React.ComponentWillReceiveProps (CedarProps state action) state eff
+    componentWillReceiveProps this props = void $ React.writeState this props.initialState
 
     getReactRender
       :: Update state (CedarProps state action) action eff
