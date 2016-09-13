@@ -1,4 +1,4 @@
-module Test.Counter where
+module Examples.Counter.Counter where
 
 import Prelude
 import Carpenter (spec, Render, Update)
@@ -11,6 +11,9 @@ import React.DOM.Props (onClick)
 type State = Int
 
 data Action = Init | Increment | Decrement
+
+counterClass :: ReactClass _
+counterClass = createClass $ spec 0 update render
 
 update :: forall props eff. Update State props Action (console :: CONSOLE | eff)
 update yield action _ _ =
@@ -32,6 +35,3 @@ render dispatch _ state _ =
     , button [onClick \_ -> dispatch Increment] [text "+"]
     , button [onClick \_ -> dispatch Decrement] [text "-"]
     ]
-
-counterClass :: ReactClass _
-counterClass = createClass $ spec 0 update render
