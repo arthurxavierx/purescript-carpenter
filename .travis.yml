@@ -27,6 +27,7 @@ script:
   - npm run -s build
 after_success:
   - npm run semantic-release
+  - echo $GH_TOKEN | pulp login
   - test -n "$TRAVIS_TAG" && ( yes | pulp publish --no-push )
 branches:
   except:
