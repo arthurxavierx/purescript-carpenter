@@ -88,7 +88,7 @@ capture reactClass handleAction state children = React.createElement reactClass 
 -- | Creates an element of the specificed React class with initial state,
 -- | and captures its dispatched actions.
 capture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> React.ReactElement
-capture' reactClass handleAction state = React.createFactory reactClass {initialState: state, handleAction: handleAction, handleState: ignoreHandler}
+capture' reactClass handleAction state = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: ignoreHandler} []
 
 -- | Creates an element of the specified React class with initial state
 -- | and children, and watches for changes in its internal state.
@@ -101,7 +101,7 @@ watch reactClass handleState state children = React.createElement reactClass {in
 -- | Creates an element of the specified React class with initial state,
 -- | and watches for changes in its internal state.
 watch' :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> state -> React.ReactElement
-watch' reactClass handleState state = React.createFactory reactClass {initialState: state, handleAction: ignoreHandler, handleState: handleState}
+watch' reactClass handleState state = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: handleState} []
 
 -- | Creates an element of the specified React class with initial state
 -- | and children, captures its dispatched actions and watches for changes
@@ -113,7 +113,7 @@ watchAndCapture reactClass handleState handleAction state children = React.creat
 -- | captures its dispatched actions and watches for changes in its
 -- | internal state.
 watchAndCapture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> React.ReactElement
-watchAndCapture' reactClass handleState handleAction state = React.createFactory reactClass {initialState: state, handleAction: handleAction, handleState: handleState}
+watchAndCapture' reactClass handleState handleAction state = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: handleState} []
 
 -- | Creates an element of the specificed React class with initial state
 -- | and children, and ignores its dispatched actions and internal state.
@@ -123,7 +123,7 @@ ignore reactClass state children = React.createElement reactClass {initialState:
 -- | Creates an element of the specificed React class with initial state,
 -- | and ignores its dispatched actions and internal state.
 ignore' :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> React.ReactElement
-ignore' reactClass state = React.createFactory reactClass {initialState: state, handleAction: ignoreHandler, handleState: ignoreHandler}
+ignore' reactClass state = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: ignoreHandler} []
 
 --
 --
