@@ -3,7 +3,7 @@
 #### `CedarProps`
 
 ``` purescript
-type CedarProps state action = { initialState :: state, handler :: ActionHandler action }
+type CedarProps state action = { initialState :: state, handleAction :: ActionHandler action, handleState :: state -> EventHandler }
 ```
 
 Type synonym for internal props of Cedar components.
@@ -17,10 +17,10 @@ type CedarClass state action = ReactClass (CedarProps state action)
 Type synonym for a ReactClass using the Cedar architecture with specific
 types for the component's state and actions.
 
-#### `spec`
+#### `cedarSpec`
 
 ``` purescript
-spec :: forall state action eff. Update state (CedarProps state action) action eff -> Render state (CedarProps state action) action -> ReactSpec (CedarProps state action) state eff
+cedarSpec :: forall state action eff. Update state (CedarProps state action) action eff -> Render state (CedarProps state action) action -> ReactSpec (CedarProps state action) state eff
 ```
 
 Creates a `ReactSpec` using the Cedar architecture for the component based
@@ -39,9 +39,9 @@ capture :: forall state action. ReactClass (CedarProps state action) -> (action 
 ```
 
 Creates an element of the specificed React class with initial state
-and children and captures its dispatched actions.
+and children, and captures its dispatched actions.
 
-`capture` and `capture'` and mostly used to dispatch actions to the parent
+`capture` and `capture'` are mostly used to dispatch actions to the parent
 component based on actions dispatched to the child component, e.g:
 
 ```purescript
@@ -49,7 +49,9 @@ data MyParentAction
   = ActionA
   | ActionB String
   | ChildAction MyChildAction
+
 -- ...
+
 render :: forall props. Render MyParentState props MyParentAction
 capture myChildClass (dispatch <<< ParentAction) 0 []
 ```
@@ -60,6 +62,50 @@ capture myChildClass (dispatch <<< ParentAction) 0 []
 capture' :: forall state action. ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> ReactElement
 ```
 
+Creates an element of the specificed React class with initial state,
+and captures its dispatched actions.
+
+#### `watch`
+
+``` purescript
+watch :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> state -> Array ReactElement -> ReactElement
+```
+
+Creates an element of the specified React class with initial state
+and children, and watches for changes in its internal state.
+
+`watch` and `watch'` are mostly used to dispatch actions to the parent
+component when the state of the child component changes, e.g:
+
+#### `watch'`
+
+``` purescript
+watch' :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> state -> ReactElement
+```
+
+Creates an element of the specified React class with initial state,
+and watches for changes in its internal state.
+
+#### `watchAndCapture`
+
+``` purescript
+watchAndCapture :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> Array ReactElement -> ReactElement
+```
+
+Creates an element of the specified React class with initial state
+and children, captures its dispatched actions and watches for changes
+in its internal state.
+
+#### `watchAndCapture'`
+
+``` purescript
+watchAndCapture' :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> ReactElement
+```
+
+Creates an element of the specified React class with initial state,
+captures its dispatched actions and watches for changes in its
+internal state.
+
 #### `ignore`
 
 ``` purescript
@@ -67,12 +113,15 @@ ignore :: forall state action. ReactClass (CedarProps state action) -> state -> 
 ```
 
 Creates an element of the specificed React class with initial state
-and children and ignores its dispatched actions.
+and children, and ignores its dispatched actions and internal state.
 
 #### `ignore'`
 
 ``` purescript
 ignore' :: forall state action. ReactClass (CedarProps state action) -> state -> ReactElement
 ```
+
+Creates an element of the specificed React class with initial state,
+and ignores its dispatched actions and internal state.
 
 
