@@ -1,7 +1,8 @@
 # purescript-carpenter
 
-[![Latest release](https://img.shields.io/npm/v/purescript-carpenter.svg)](https://github.com/ecliptic/purescript-carpenter/releases)
+[![purescript-carpenter on Pursuit](https://pursuit.purescript.org/packages/purescript-carpenter/badge)](https://pursuit.purescript.org/packages/purescript-carpenter)
 [![Latest release](https://img.shields.io/bower/v/purescript-carpenter.svg)](https://github.com/ecliptic/purescript-carpenter/releases)
+[![Latest release](https://img.shields.io/npm/v/purescript-carpenter.svg)](https://github.com/ecliptic/purescript-carpenter/releases)
 [![Build Status](https://travis-ci.org/arthur-xavier/purescript-carpenter.svg?branch=master)](https://travis-ci.org/arthur-xavier/purescript-carpenter)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -23,9 +24,9 @@ bower install --save purescript-carpenter
 
 ## Getting started
 
-Carpenter is a component-based library for state management in React applications with PureScript. It provides functions and types for managing state in a type-safe way.
+Carpenter is a library for state management in React applications with PureScript in a type-safe way, which can be easily integrated in any existing application.
 
-Carpenter components are React components built in a different way. Carpenter components are defined in terms of:
+Carpenter components are React components built in a different way. They are defined in terms of:
 
 - An _actions_ type, which represents the actions to which the component can react;
 - A _state_ type, which represents the mutable state of the component, which can be changed by dispatching actions to the component;
@@ -84,7 +85,7 @@ render dispatch _ state _ =
 And last but not least, maybe the most important part of Carpenter is to build a React class based on the Carpenter specification of the component. Built using Carpenter's `spec` function, this specification takes an initial state for the component and its update and render functions:
 
 ```purescript
-counterClass :: ReactClass _
+counterClass :: R.ReactClass _
 counterClass = R.createClass $ C.spec 0 update render
 ```
 
@@ -130,6 +131,32 @@ data Action = Init | Increment | Decrement
 ```
 
 ```purescript
-counterClass :: ReactClass _
+counterClass :: R.ReactClass _
 counterClass = R.createClass $ C.spec' Init update render
 ```
+
+## Combining components
+
+By building upon React's well defined foundations for component-based architectures, Carpenter components can be easily combined, just as in normal React applications. For simple (monoidal) combinations of components, such as side-by-side or disconnected parent-child components, we can simply instantiate the components side-by-side or inside the render function of a parent component:
+
+```purescript
+counterClass :: R.ReactClass _
+counterClass = R.createClass $ C.spec 0 update render
+
+counter :: R.ReactElement
+counter = R.createFactory counterClass {}
+```
+
+```purescript
+parentRender :: C.Render ParentState _ ParentAction
+parentRender _ _ _ _ =
+  R.div'
+    [ R.h1' [ text "Here are 5 counters" ]
+    , R.ul' $ map (\_ -> R.li' [ counter ]) (range 1 5)
+    ]
+
+parentClass :: R.ReactClass _
+parentClass = R.createClass $ C.spec {} parentUpdate parentRender
+```
+
+The above example creates a class of a component which contains a heading text which says _"Here are 5 counters"_ followed by a list of 5 counters.
