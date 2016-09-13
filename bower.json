@@ -6,6 +6,17 @@
     "bower_components",
     "output"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arthur-xavier/purescript-carpenter.git"
+  },
+  "keywords": [
+    "purescript",
+    "react",
+    "elm",
+    "redux",
+    "state"
+  ],
   "license": "MIT",
   "dependencies": {
     "purescript-react": "^1.1.0",
