@@ -27,6 +27,7 @@ script:
   - npm run -s build
 after_success:
   - npm run semantic-release
+  - test -n "$TRAVIS_TAG" && ( yes | pulp publish --no-push )
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
