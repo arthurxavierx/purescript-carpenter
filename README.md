@@ -1,8 +1,8 @@
 # purescript-carpenter
 
 [![purescript-carpenter on Pursuit](https://pursuit.purescript.org/packages/purescript-carpenter/badge)](https://pursuit.purescript.org/packages/purescript-carpenter)
-[![Latest release](https://img.shields.io/bower/v/purescript-carpenter.svg)](https://github.com/ecliptic/purescript-carpenter/releases)
-[![Latest release](https://img.shields.io/npm/v/purescript-carpenter.svg)](https://github.com/ecliptic/purescript-carpenter/releases)
+[![Latest release](https://img.shields.io/bower/v/purescript-carpenter.svg)](https://github.com/arthur-xavier/purescript-carpenter/releases)
+[![Latest release](https://img.shields.io/npm/v/purescript-carpenter.svg)](https://www.npmjs.com/package/purescript-carpenter)
 [![Build Status](https://travis-ci.org/arthur-xavier/purescript-carpenter.svg?branch=master)](https://travis-ci.org/arthur-xavier/purescript-carpenter)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
