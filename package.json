@@ -4,6 +4,7 @@
   "description": "Simple architecture for purescript-react inspired by Elm and Thermite",
   "scripts": {
     "build": "psa \"src/**/*.purs\" \"bower_components/purescript-*/src/**/*.purs\" --censor-lib --strict",
+    "examples": "psa \"examples/**/*.purs\" \"src/**/*.purs\" \"bower_components/purescript-*/src/**/*.purs\" --censor-warnings",
     "commit": "./node_modules/.bin/git-cz",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },

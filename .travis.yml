@@ -25,6 +25,7 @@ before_script:
   - npm prune
 script:
   - npm run -s build
+  - npm run -s examples
 after_success:
   - npm run semantic-release
   - echo $GH_TOKEN | pulp login
