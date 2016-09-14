@@ -1,5 +1,6 @@
 module Carpenter.Cedar
   ( cedarSpec
+  , cedarSpec'
   , capture
   , capture'
   , watch
@@ -36,7 +37,7 @@ data CedarHandler state action
 -- | types for the component's state and actions.
 type CedarClass state action = React.ReactClass (CedarProps state action)
 
--- | Creates a `ReactSpec` using the Cedar architecture for the component based
+-- | Creates a specification of a component using the Cedar architecture based
 -- | on the supplied update and render functions.
 -- |
 -- | The Cedar architecture is highly based on the Elm architecture but it
@@ -60,25 +61,34 @@ cedarSpec update render = reactSpec { componentWillReceiveProps = componentWillR
     componentWillReceiveProps :: React.ComponentWillReceiveProps (CedarProps state action) state eff
     componentWillReceiveProps this props = void $ React.writeState this props.initialState
 
-    getReactRender
-      :: Update state (CedarProps state action) action eff
-      -> Render state (CedarProps state action) action
-      -> React.Render (CedarProps state action) state eff
-    getReactRender update render this = do
+-- | Creates a specification of a Cedar component which emits a default initial
+-- | action and has the specified update and render functions.
+cedarSpec'
+  :: ∀ state action eff
+   . action
+  -> Update state (CedarProps state action) action eff
+  -> Render state (CedarProps state action) action
+  -> React.ReactSpec (CedarProps state action) state eff
+cedarSpec' action update render = reactSpec
+  { componentWillReceiveProps = componentWillReceiveProps
+  , componentDidMount = componentDidMount
+  }
+  where
+    reactSpec :: React.ReactSpec (CedarProps state action) state eff
+    reactSpec = React.spec' getInitialState (getReactRender update render)
+
+    getInitialState :: React.GetInitialState (CedarProps state action) state eff
+    getInitialState this = React.getProps this >>= pure <<< _.initialState
+
+    componentWillReceiveProps :: React.ComponentWillReceiveProps (CedarProps state action) state eff
+    componentWillReceiveProps this props = void $ React.writeState this props.initialState
+
+    componentDidMount :: React.ComponentDidMount (CedarProps state action) state eff
+    componentDidMount this = void $ do
       props <- React.getProps this
       state <- React.readState this
-      children <- React.getChildren this
       let yield = mkYielder this
-      let dispatch :: Dispatcher action
-          dispatch action = void $ do
-            unsafeInterleaveEff $ launchAff do
-              new <- update yield action props state
-              liftEff $ case props.handler of
-                Capture f -> f action
-                Watch f -> f new
-                WatchAndCapture f -> f action new
-                _ -> pure unit
-      pure $ render dispatch props state children
+      unsafeInterleaveEff (launchAff (update yield action props state))
 
 -- | Creates an element of the specificed React class with initial state
 -- | and children, and captures its dispatched actions.
@@ -141,3 +151,26 @@ ignore reactClass state children = React.createElement reactClass {initialState:
 -- | and ignores its dispatched actions and internal state.
 ignore' :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> React.ReactElement
 ignore' reactClass state = React.createElement reactClass {initialState: state, handler: Ignore} []
+
+--
+--
+getReactRender
+  :: ∀ state action eff
+   . Update state (CedarProps state action) action eff
+  -> Render state (CedarProps state action) action
+  -> React.Render (CedarProps state action) state eff
+getReactRender update render this = do
+  props <- React.getProps this
+  state <- React.readState this
+  children <- React.getChildren this
+  let yield = mkYielder this
+  let dispatch :: Dispatcher action
+      dispatch action = void $ do
+        unsafeInterleaveEff $ launchAff do
+          new <- update yield action props state
+          liftEff $ case props.handler of
+            Capture f -> f action
+            Watch f -> f new
+            WatchAndCapture f -> f action new
+            _ -> pure unit
+  pure $ render dispatch props state children
