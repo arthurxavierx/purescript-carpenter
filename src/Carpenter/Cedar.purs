@@ -16,7 +16,7 @@ module Carpenter.Cedar
 
 import Prelude
 import React as React
-import Carpenter (Dispatcher, mkYielder, Render, Update, EventHandler)
+import Carpenter (Yielder, Dispatcher, mkYielder, Render, Update, EventHandler)
 import Control.Monad.Aff (launchAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
@@ -88,7 +88,8 @@ cedarSpec' action update render = reactSpec
       props <- React.getProps this
       state <- React.readState this
       let yield = mkYielder this
-      unsafeInterleaveEff (launchAff (update yield action props state))
+      let dispatch = mkDispatcher update props state yield
+      unsafeInterleaveEff (launchAff (update yield dispatch action props state))
 
 -- | Creates an element of the specificed React class with initial state
 -- | and children, and captures its dispatched actions.
@@ -164,13 +165,17 @@ getReactRender update render this = do
   state <- React.readState this
   children <- React.getChildren this
   let yield = mkYielder this
-  let dispatch :: Dispatcher action
-      dispatch action = void $ do
-        unsafeInterleaveEff $ launchAff do
-          new <- update yield action props state
-          liftEff $ case props.handler of
-            Capture f -> f action
-            Watch f -> f new
-            WatchAndCapture f -> f action new
-            _ -> pure unit
+  let dispatch = mkDispatcher update props state yield
   pure $ render dispatch props state children
+
+mkDispatcher :: ∀ state action eff. Update state (CedarProps state action) action eff -> (CedarProps state action) -> state -> Yielder state eff -> Dispatcher action
+mkDispatcher update props state yield = dispatch
+  where
+    dispatch :: Dispatcher action
+    dispatch action = void $ unsafeInterleaveEff $ launchAff do
+      new <- update yield dispatch action props state
+      liftEff $ case props.handler of
+        Capture f -> f action
+        Watch f -> f new
+        WatchAndCapture f -> f action new
+        _ -> pure unit

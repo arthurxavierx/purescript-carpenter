@@ -47,6 +47,7 @@ type Yielder state eff = (state -> state) -> Aff (state :: React.ReactState Reac
 -- | The supplied `yield` function asynchronously updates the component's state.
 type Update state props action eff
    = Yielder state eff
+  -> Dispatcher action
   -> action
   -> props
   -> state
@@ -79,7 +80,9 @@ spec' state action update render = (React.spec state (getReactRender update rend
       props <- React.getProps this
       state <- React.readState this
       let yield = mkYielder this
-      unsafeInterleaveEff (launchAff (update yield action props state))
+      let dispatch :: Dispatcher action
+          dispatch action = void $ unsafeInterleaveEff (launchAff (update yield dispatch action props state))
+      unsafeInterleaveEff (launchAff (update yield dispatch action props state))
 
 mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state eff
 mkYielder this = yield
@@ -99,5 +102,5 @@ getReactRender update render this = do
   children <- React.getChildren this
   let yield = mkYielder this
   let dispatch :: Dispatcher action
-      dispatch action = void $ unsafeInterleaveEff (launchAff (update yield action props state))
+      dispatch action = void $ unsafeInterleaveEff (launchAff (update yield dispatch action props state))
   pure $ render dispatch props state children
