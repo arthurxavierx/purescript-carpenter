@@ -17,7 +17,7 @@ counterListClass :: ReactClass _
 counterListClass = createClass $ spec [0] update render
 
 update :: forall props eff. Update CounterList props CounterListAction eff
-update yield action _ _ =
+update yield _ action _ _ =
   case action of
     Add ->
       yield \state -> snoc state 0

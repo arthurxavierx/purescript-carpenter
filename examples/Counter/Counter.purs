@@ -16,7 +16,7 @@ counterClass :: ReactClass _
 counterClass = createClass $ spec 0 update render
 
 update :: forall props eff. Update State props Action (console :: CONSOLE | eff)
-update yield action _ _ =
+update yield _ action _ _ =
   case action of
     Init -> do
       liftEff $ log "Initializing"

@@ -18,7 +18,7 @@ counterClass :: CedarClass Counter CounterAction
 counterClass = createClass $ cedarSpec update render
 
 update :: forall props eff. Update Counter props CounterAction eff
-update yield action _ _ =
+update yield _ action _ _ =
   case action of
     Increment ->
       yield (_ + 1)
