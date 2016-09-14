@@ -41,7 +41,8 @@ type Dispatcher action = action -> EventHandler
 type Yielder state eff = (state -> state) -> Aff (state :: React.ReactState React.ReadWrite | eff) state
 
 -- | Type synonym for an action handler which takes a `Yielder` supplied by
--- | React's internal rendering function, the dispatched action and the
+-- | React's internal rendering function, a `Dispatcher` used to dispatch
+-- | new actions to the same component, the dispatched action and the
 -- | component's current props and state.
 -- |
 -- | The supplied `yield` function asynchronously updates the component's state.

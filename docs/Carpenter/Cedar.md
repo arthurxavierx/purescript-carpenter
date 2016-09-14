@@ -3,10 +3,16 @@
 #### `CedarProps`
 
 ``` purescript
-type CedarProps state action = { initialState :: state, handleAction :: ActionHandler action, handleState :: state -> EventHandler }
+type CedarProps state action = { initialState :: state, handler :: CedarHandler state action }
 ```
 
 Type synonym for internal props of Cedar components.
+
+#### `CedarHandler`
+
+``` purescript
+data CedarHandler state action
+```
 
 #### `CedarClass`
 
@@ -23,7 +29,7 @@ types for the component's state and actions.
 cedarSpec :: forall state action eff. Update state (CedarProps state action) action eff -> Render state (CedarProps state action) action -> ReactSpec (CedarProps state action) state eff
 ```
 
-Creates a `ReactSpec` using the Cedar architecture for the component based
+Creates a specification of a component using the Cedar architecture based
 on the supplied update and render functions.
 
 The Cedar architecture is highly based on the Elm architecture but it
@@ -31,6 +37,15 @@ allows the existance of multiple sources of truth. That means it allow you
 to break the upward bubbling of actions up to the root component. You can
 choose to capture or ignore the actions dispatched by child components
 using the `capture` and `ignore` functions respectively.
+
+#### `cedarSpec'`
+
+``` purescript
+cedarSpec' :: forall state action eff. action -> Update state (CedarProps state action) action eff -> Render state (CedarProps state action) action -> ReactSpec (CedarProps state action) state eff
+```
+
+Creates a specification of a Cedar component which emits a default initial
+action and has the specified update and render functions.
 
 #### `capture`
 
@@ -72,7 +87,7 @@ watch :: forall state action. ReactClass (CedarProps state action) -> (state -> 
 ```
 
 Creates an element of the specified React class with initial state
-and children, and watches for changes in its internal state.
+and children, and watches for changes to its internal state.
 
 `watch` and `watch'` are mostly used to dispatch actions to the parent
 component when the state of the child component changes, e.g:
@@ -84,27 +99,29 @@ watch' :: forall state action. ReactClass (CedarProps state action) -> (state ->
 ```
 
 Creates an element of the specified React class with initial state,
-and watches for changes in its internal state.
+and watches for changes to its internal state.
 
 #### `watchAndCapture`
 
 ``` purescript
-watchAndCapture :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> Array ReactElement -> ReactElement
+watchAndCapture :: forall state action. ReactClass (CedarProps state action) -> (action -> state -> EventHandler) -> state -> Array ReactElement -> ReactElement
 ```
 
 Creates an element of the specified React class with initial state
-and children, captures its dispatched actions and watches for changes
-in its internal state.
+and children, and watches for changes to its internal state.
+The handler function is then called with the dispatched action which
+caused the state change and the updated state.
 
 #### `watchAndCapture'`
 
 ``` purescript
-watchAndCapture' :: forall state action. ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> ReactElement
+watchAndCapture' :: forall state action. ReactClass (CedarProps state action) -> (action -> state -> EventHandler) -> state -> ReactElement
 ```
 
 Creates an element of the specified React class with initial state,
-captures its dispatched actions and watches for changes in its
-internal state.
+and watches for changes to its internal state.
+The handler function is then called with the dispatched action which
+caused the state change and the updated state.
 
 #### `ignore`
 
