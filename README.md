@@ -11,10 +11,11 @@ Carpenter provides an interface to React in PureScript, highly insired by inspir
 Carpenter also provides simple patterns and architectures for dealing with more complex applications.
 
 - [Module Documentation](https://pursuit.purescript.org/packages/purescript-carpenter)
-- [Counter example](test/Counter.purs)
-- [Counter list example (Elm architecture)](test/Counters.purs)
+- [Counter example](examples/Counter/Counter.purs)
+- [Counter list example capturing actions](examples/CounterList/)
+- [Counter list example capturing state](examples/CounterList/Maybe/)
 
-## Install
+## Installing
 
 You can install Carpenter with bower:
 
@@ -64,8 +65,8 @@ We have then enough building blocks to construct our _update_ function, which mu
 
 ```purescript
 update :: forall eff. C.Update State _ Action eff
-update yield Increment _ _ = yield (_ + 1)
-update yield Decrement _ _ = yield (_ - 1)
+update yield _ Increment _ _ = yield (_ + 1)
+update yield _ Decrement _ _ = yield (_ - 1)
 ```
 
 The update function takes a function for first argument that asynchronously reads the current state and updates it based on a function passed as argument. The other arguments of the update function are respectively the dispatched _action_ and the components current _props_ and _state_.
@@ -111,7 +112,7 @@ We'll modify the above defined _Counter_ component so that we can log to the con
 
 ```purescript
 update :: forall eff. C.Update State _ Action (console :: CONSOLE | eff)
-update yield action _ _ =
+update yield _ action _ _ =
   case action of
     Init -> do
       liftEff $ log "Initializing"
@@ -177,7 +178,7 @@ type EditTextProps =
   }
 
 updateEditText :: forall eff. C.Update EditTextState EditTextProps EditTextAction eff
-updateEditText yield action props state =
+updateEditText yield _ action props state =
   Change value ->
     yield (const value)
   Submit ->
@@ -248,7 +249,7 @@ type Counter = Int
 data CounterAction = Increment | Decrement | Remove
 
 updateCounter :: forall props eff. C.Update Counter props CounterAction eff
-updateCounter yield action _ _ =
+updateCounter yield _ action _ _ =
   case action of
     Increment ->
       yield (_ + 1)
@@ -291,7 +292,7 @@ The _update_ function for the list of counters must only append a new counter to
 
 ```purescript
 updateCounterList :: forall props eff. C.Update CounterList props CounterListAction eff
-updateCounterList yield action _ _ =
+updateCounterList yield _ action _ _ =
   case action of
     Add ->
       yield \state -> snoc state 0
