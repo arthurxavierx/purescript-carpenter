@@ -9,12 +9,13 @@ module Carpenter.Cedar
   , ignore
   , ignore'
   , CedarProps
+  , CedarHandler
   , CedarClass
   ) where
 
 import Prelude
 import React as React
-import Carpenter (ActionHandler, Dispatcher, mkYielder, Render, Update, EventHandler)
+import Carpenter (Dispatcher, mkYielder, Render, Update, EventHandler)
 import Control.Monad.Aff (launchAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
@@ -22,9 +23,14 @@ import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
 -- | Type synonym for internal props of Cedar components.
 type CedarProps state action =
   { initialState :: state
-  , handleAction :: ActionHandler action
-  , handleState :: state -> EventHandler
+  , handler :: CedarHandler state action
   }
+
+data CedarHandler state action
+  = Capture (action -> EventHandler)
+  | Watch (state -> EventHandler)
+  | WatchAndCapture (action -> state -> EventHandler)
+  | Ignore
 
 -- | Type synonym for a ReactClass using the Cedar architecture with specific
 -- | types for the component's state and actions.
@@ -65,10 +71,13 @@ cedarSpec update render = reactSpec { componentWillReceiveProps = componentWillR
       let yield = mkYielder this
       let dispatch :: Dispatcher action
           dispatch action = void $ do
-            props.handleAction action
             unsafeInterleaveEff $ launchAff do
               new <- update yield action props state
-              liftEff $ props.handleState new
+              liftEff $ case props.handler of
+                Capture f -> f action
+                Watch f -> f new
+                WatchAndCapture f -> f action new
+                _ -> pure unit
       pure $ render dispatch props state children
 
 -- | Creates an element of the specificed React class with initial state
@@ -89,50 +98,46 @@ cedarSpec update render = reactSpec { componentWillReceiveProps = componentWillR
 -- | capture myChildClass (dispatch <<< ParentAction) 0 []
 -- | ```
 capture :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
-capture reactClass handleAction state children = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: ignoreHandler} children
+capture reactClass handler state children = React.createElement reactClass {initialState: state, handler: Capture handler} children
 
 -- | Creates an element of the specificed React class with initial state,
 -- | and captures its dispatched actions.
 capture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> EventHandler) -> state -> React.ReactElement
-capture' reactClass handleAction state = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: ignoreHandler} []
+capture' reactClass handler state = React.createElement reactClass {initialState: state, handler: Capture handler} []
 
 -- | Creates an element of the specified React class with initial state
--- | and children, and watches for changes in its internal state.
+-- | and children, and watches for changes to its internal state.
 -- |
 -- | `watch` and `watch'` are mostly used to dispatch actions to the parent
 -- | component when the state of the child component changes, e.g:
 watch :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
-watch reactClass handleState state children = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: handleState} children
+watch reactClass handler state children = React.createElement reactClass {initialState: state, handler: Watch handler} children
 
 -- | Creates an element of the specified React class with initial state,
--- | and watches for changes in its internal state.
+-- | and watches for changes to its internal state.
 watch' :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> state -> React.ReactElement
-watch' reactClass handleState state = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: handleState} []
+watch' reactClass handler state = React.createElement reactClass {initialState: state, handler: Watch handler} []
 
 -- | Creates an element of the specified React class with initial state
--- | and children, captures its dispatched actions and watches for changes
--- | in its internal state.
-watchAndCapture :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
-watchAndCapture reactClass handleState handleAction state children = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: handleState} children
+-- | and children, and watches for changes to its internal state.
+-- | The handler function is then called with the dispatched action which
+-- | caused the state change and the updated state.
+watchAndCapture :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> state -> EventHandler) -> state -> Array React.ReactElement -> React.ReactElement
+watchAndCapture reactClass handler state children = React.createElement reactClass {initialState: state, handler: WatchAndCapture handler} children
 
 -- | Creates an element of the specified React class with initial state,
--- | captures its dispatched actions and watches for changes in its
--- | internal state.
-watchAndCapture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (state -> EventHandler) -> (action -> EventHandler) -> state -> React.ReactElement
-watchAndCapture' reactClass handleState handleAction state = React.createElement reactClass {initialState: state, handleAction: handleAction, handleState: handleState} []
+-- | and watches for changes to its internal state.
+-- | The handler function is then called with the dispatched action which
+-- | caused the state change and the updated state.
+watchAndCapture' :: ∀ state action. React.ReactClass (CedarProps state action) -> (action -> state -> EventHandler) -> state -> React.ReactElement
+watchAndCapture' reactClass handler state = React.createElement reactClass {initialState: state, handler: WatchAndCapture handler} []
 
 -- | Creates an element of the specificed React class with initial state
 -- | and children, and ignores its dispatched actions and internal state.
 ignore :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> Array React.ReactElement -> React.ReactElement
-ignore reactClass state children = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: ignoreHandler} children
+ignore reactClass state children = React.createElement reactClass {initialState: state, handler: Ignore} children
 
 -- | Creates an element of the specificed React class with initial state,
 -- | and ignores its dispatched actions and internal state.
 ignore' :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> React.ReactElement
-ignore' reactClass state = React.createElement reactClass {initialState: state, handleAction: ignoreHandler, handleState: ignoreHandler} []
-
---
---
-ignoreHandler :: ∀ a. a -> EventHandler
-ignoreHandler _ = pure unit
-
+ignore' reactClass state = React.createElement reactClass {initialState: state, handler: Ignore} []
