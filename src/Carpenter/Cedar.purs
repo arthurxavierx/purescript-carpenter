@@ -71,7 +71,7 @@ cedarSpec'
   -> React.ReactSpec (CedarProps state action) state eff
 cedarSpec' action update render = reactSpec
   { componentWillReceiveProps = componentWillReceiveProps
-  , componentDidMount = componentDidMount
+  , componentWillMount = componentWillMount
   }
   where
     reactSpec :: React.ReactSpec (CedarProps state action) state eff
@@ -83,8 +83,8 @@ cedarSpec' action update render = reactSpec
     componentWillReceiveProps :: React.ComponentWillReceiveProps (CedarProps state action) state eff
     componentWillReceiveProps this props = void $ React.writeState this props.initialState
 
-    componentDidMount :: React.ComponentDidMount (CedarProps state action) state eff
-    componentDidMount this = void $ do
+    componentWillMount :: React.ComponentWillMount (CedarProps state action) state eff
+    componentWillMount this = void $ do
       props <- React.getProps this
       state <- React.readState this
       let yield = mkYielder this

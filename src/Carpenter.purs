@@ -74,10 +74,10 @@ spec state update render = React.spec state (getReactRender update render)
 -- | Constructs a React component spec based on an initial state,
 -- | an initial action, an update function and a render function.
 spec' :: ∀ state props action eff. state -> action -> Update state props action eff -> Render state props action -> React.ReactSpec props state eff
-spec' state action update render = (React.spec state (getReactRender update render)) { componentDidMount = componentDidMount }
+spec' state action update render = (React.spec state (getReactRender update render)) { componentWillMount = componentWillMount }
   where
-    componentDidMount :: React.ComponentDidMount props state eff
-    componentDidMount this = void $ do
+    componentWillMount :: React.ComponentWillMount props state eff
+    componentWillMount this = void $ do
       props <- React.getProps this
       state <- React.readState this
       let yield = mkYielder this
