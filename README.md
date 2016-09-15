@@ -11,9 +11,12 @@ Carpenter provides an interface to React in PureScript, highly insired by inspir
 Carpenter also provides simple patterns and architectures for dealing with more complex applications.
 
 - [Module Documentation](https://pursuit.purescript.org/packages/purescript-carpenter)
+
 - [Counter example](examples/Counter/Counter.purs)
 - [Counter list example capturing actions](examples/CounterList/)
 - [Counter list example capturing state](examples/CounterList/Maybe/)
+
+- [PureScript + Carpenter • TodoMVC](https://github.com/arthur-xavier/purescript-carpenter-todomvc)
 
 ## Installing
 
@@ -86,16 +89,16 @@ render dispatch _ state _ =
 And last but not least, maybe the most important part of Carpenter is to build a React class based on the Carpenter specification of the component. Built using Carpenter's `spec` function, this specification takes an initial state for the component and its update and render functions:
 
 ```purescript
-counterClass :: R.ReactClass _
-counterClass = R.createClass $ C.spec 0 update render
+counterComponent :: R.ReactClass _
+counterComponent = R.createClass $ C.spec 0 update render
 ```
 
 After that we're ready to use the above defined component in a React application just by instantiating it with React's `createFactory` or `createElement` functions:
 
 ```purescript
-R.createFactory counterClass {}
+R.createFactory counterComponent {}
 -- or
-R.createElement counterClass {} []
+R.createElement counterComponent {} []
 ```
 
 ## Effectful actions
@@ -108,15 +111,17 @@ Carpenter also provides an alternative function for defining component specifica
 
 ### Counter example with logging to the console
 
-We'll modify the above defined _Counter_ component so that we can log to the console when the component is initialized, and when the counter gets incremented or decremented. For that we need only to add a new action `Init` to the `Action` type, change the `update` function and the way we create the `counterClass` React class to use the `spec'` function:
+We'll modify the above defined _Counter_ component so that we can load the count from an external API component is initialized, and log to the console when the counter gets incremented or decremented. For that we need only to add a new action `Init` to the `Action` type, change the `update` function and the way we create the `counterComponent` React class to use the `spec'` function.
 
 ```purescript
+getCountFromAPI :: Aff _ State
+
 update :: forall eff. C.Update State _ Action (console :: CONSOLE | eff)
 update yield _ action _ _ =
   case action of
     Init -> do
-      liftEff $ log "Initializing"
-      yield (const 0)
+      count <- getCountFromAPI
+      yield (const count)
     Increment -> do
       liftEff $ log "Incrementing"
       yield (_ + 1)
@@ -132,8 +137,8 @@ data Action = Init | Increment | Decrement
 ```
 
 ```purescript
-counterClass :: R.ReactClass _
-counterClass = R.createClass $ C.spec' Init update render
+counterComponent :: R.ReactClass _
+counterComponent = R.createClass $ C.spec' Init update render
 ```
 
 ## Combining components
@@ -141,11 +146,11 @@ counterClass = R.createClass $ C.spec' Init update render
 By building upon React's well defined foundations for component-based architectures, Carpenter components can be easily combined, just as in normal React applications. For simple (monoidal) combinations of components, such as side-by-side or disconnected parent-child components, we can simply instantiate the components side-by-side or inside the render function of a parent component:
 
 ```purescript
-counterClass :: R.ReactClass _
-counterClass = R.createClass $ C.spec 0 update render
+counterComponent :: R.ReactClass _
+counterComponent = R.createClass $ C.spec 0 update render
 
 counter :: R.ReactElement
-counter = R.createFactory counterClass {}
+counter = R.createFactory counterComponent {}
 ```
 
 ```purescript
@@ -156,8 +161,8 @@ parentRender _ _ _ _ =
     , R.ul' $ map (\_ -> R.li' [ counter ]) (range 1 5)
     ]
 
-parentClass :: R.ReactClass _
-parentClass = R.createClass $ C.spec {} parentUpdate parentRender
+parentComponent :: R.ReactClass _
+parentComponent = R.createClass $ C.spec {} parentUpdate parentRender
 ```
 
 The above example creates a class of a component which contains a heading text which says _"Here are 5 counters"_ followed by a list of 5 counters.
@@ -183,23 +188,24 @@ updateEditText yield _ action props state =
     yield (const value)
   Submit ->
     props.onSubmit state
-    yield id
+    pure state
 
 renderEditText :: C.Render EditTextState EditTextProps EditTextAction
 renderEditText dispatch props state _ =
   R.input
     [ P._type "text"
+    , P.onChange \e -> dispatch $ Change (unsafeCoerce e).target.value
     , P.onKeyUp \e ->
         if e.charCode == 13
           then dispatch Submit
-          else dispatch (Change $ state <> e.key)
+          else pure unit
     ]
 
-editTextClass :: R.ReactClass EditTextProps
-editTextClass = R.createClass $ spec '' updateEditText renderEditText
+editTextComponent :: R.ReactClass EditTextProps
+editTextComponent = R.createClass $ spec '' updateEditText renderEditText
 
 editText :: (EditTextState -> C.EventHandler) -> R.ReactElement
-editText onSubmit = R.createFactory editTextClass { onSubmit: onSubmit }
+editText onSubmit = R.createFactory editTextComponent { onSubmit: onSubmit }
 ```
 
 And on our parent component we can have:
@@ -249,14 +255,14 @@ type Counter = Int
 data CounterAction = Increment | Decrement | Remove
 
 updateCounter :: forall props eff. C.Update Counter props CounterAction eff
-updateCounter yield _ action _ _ =
+updateCounter yield _ action _ state =
   case action of
     Increment ->
       yield (_ + 1)
     Decrement ->
       yield (_ - 1)
     Remove ->
-      yield id
+      pure state
 
 renderCounter :: forall props. C.Render Counter props CounterAction
 renderCounter dispatch _ state _ =
@@ -267,11 +273,8 @@ renderCounter dispatch _ state _ =
     , button [onClick \_ -> dispatch Remove] [text "X"]
     ]
 
-counterClass :: C.CedarClass Counter CounterAction
-counterClass = createClass $ C.cedarSpec updateCounter renderCounter
-
-counter :: ActionHandler CounterAction -> Counter -> ReactElement
-counter = capture' counterClass
+counterComponent :: C.CedarClass Counter CounterAction
+counterComponent = createClass $ C.cedarSpec updateCounter renderCounter
 ```
 
 Our counter component is now defined to have its actions captured by its parent components. It's also defined in a way that we can set the initial value of the counter in a very straightforward fashion.
@@ -304,10 +307,10 @@ updateCounterList yield _ action _ _ =
           yield id
 ```
 
-For the _render_ function, the only thing missing is to render all the counters from the array and map its actions to the actions of the counter list. This can be done by using the `capture` function from `Carpenter.Cedar`, as in the definition of the `counter` function:
+For the _render_ function, the only thing missing is to render all the counters from the array and map its actions to the actions of the counter list. This can be done by using the `capture'` function from `Carpenter.Cedar`:
 
 ```purescript
-capture counterClass (dispatch <<< CounterAction index) count
+capture' counterComponent (dispatch <<< CounterAction index) counter
 ```
 
 Thus, for the `renderCounterList` we have:
@@ -316,7 +319,7 @@ Thus, for the `renderCounterList` we have:
 renderCounterList :: forall props. C.Render CounterList props CounterListAction
 renderCounterList dispatch _ state _ =
   div'
-    [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state
+    [ div' $ mapWithIndex (\i counter -> capture' counterComponent (dispatch <<< CounterAction i) counter) state
     , button [onClick \_ -> dispatch Add] [text "++"]
     ]
 ```
@@ -324,6 +327,6 @@ renderCounterList dispatch _ state _ =
 And last but not least, as stated above, we must not use Cedar for all the components. Our `counterList` component can be defined using Carpenter's simple specs.
 
 ```purescript
-counterListClass :: R.ReactClass _
-counterListClass = createClass $ spec [0] updateCounterList renderCounterList
+counterListComponent :: R.ReactClass _
+counterListComponent = createClass $ spec [0] updateCounterList renderCounterList
 ```
