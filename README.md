@@ -138,7 +138,7 @@ data Action = Init | Increment | Decrement
 
 ```purescript
 counterComponent :: R.ReactClass _
-counterComponent = R.createClass $ C.spec' Init update render
+counterComponent = R.createClass $ C.spec' 0 Init update render
 ```
 
 ## Combining components
