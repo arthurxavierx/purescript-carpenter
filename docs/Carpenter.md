@@ -85,10 +85,14 @@ spec' :: forall state props action eff. state -> action -> Update state props ac
 Constructs a React component spec based on an initial state,
 an initial action, an update function and a render function.
 
-#### `mkYielder`
+#### `mockUpdate`
 
 ``` purescript
-mkYielder :: forall props state eff. ReactThis props state -> Yielder state eff
+mockUpdate :: forall state props action eff. Update state props action eff -> action -> props -> state -> Aff eff state
 ```
+
+Generates an update function for testing with mock `yield` and `dispatch`
+functions, which do not depend on React, but return the modified state and
+behave as expected.
 
 
