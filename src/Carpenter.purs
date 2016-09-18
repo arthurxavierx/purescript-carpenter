@@ -7,7 +7,6 @@ module Carpenter
   , Dispatcher
   , EventHandler
   , ActionHandler
-  , mkYielder
   ) where
 
 import Prelude
@@ -85,6 +84,8 @@ spec' state action update render = (React.spec state (getReactRender update rend
           dispatch action = void $ unsafeInterleaveEff (launchAff (update yield dispatch action props state))
       unsafeInterleaveEff (launchAff (update yield dispatch action props state))
 
+--
+--
 mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state eff
 mkYielder this = \f ->
   makeAff \_ resolve -> void do
@@ -92,8 +93,6 @@ mkYielder this = \f ->
     let new = f old
     React.writeStateWithCallback this new (resolve new)
 
---
---
 getReactRender :: ∀ state props action eff. Update state props action eff -> Render state props action -> React.Render props state eff
 getReactRender update render this = do
   props <- React.getProps this

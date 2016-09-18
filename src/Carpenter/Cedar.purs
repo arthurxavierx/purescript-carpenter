@@ -16,8 +16,8 @@ module Carpenter.Cedar
 
 import Prelude
 import React as React
-import Carpenter (Yielder, Dispatcher, mkYielder, Render, Update, EventHandler)
-import Control.Monad.Aff (launchAff)
+import Carpenter (Yielder, Dispatcher, Render, Update, EventHandler)
+import Control.Monad.Aff (makeAff, launchAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
 
@@ -155,18 +155,12 @@ ignore' reactClass state = React.createElement reactClass {initialState: state, 
 
 --
 --
-getReactRender
-  :: ∀ state action eff
-   . Update state (CedarProps state action) action eff
-  -> Render state (CedarProps state action) action
-  -> React.Render (CedarProps state action) state eff
-getReactRender update render this = do
-  props <- React.getProps this
-  state <- React.readState this
-  children <- React.getChildren this
-  let yield = mkYielder this
-  let dispatch = mkDispatcher update props state yield
-  pure $ render dispatch props state children
+mkYielder :: ∀ props state eff. React.ReactThis props state -> Yielder state eff
+mkYielder this = \f ->
+  makeAff \_ resolve -> void do
+    old <- React.readState this
+    let new = f old
+    React.writeStateWithCallback this new (resolve new)
 
 mkDispatcher :: ∀ state action eff. Update state (CedarProps state action) action eff -> (CedarProps state action) -> state -> Yielder state eff -> Dispatcher action
 mkDispatcher update props state yield = dispatch
@@ -179,3 +173,16 @@ mkDispatcher update props state yield = dispatch
         Watch f -> f new
         WatchAndCapture f -> f action new
         _ -> pure unit
+
+getReactRender
+  :: ∀ state action eff
+   . Update state (CedarProps state action) action eff
+  -> Render state (CedarProps state action) action
+  -> React.Render (CedarProps state action) state eff
+getReactRender update render this = do
+  props <- React.getProps this
+  state <- React.readState this
+  children <- React.getChildren this
+  let yield = mkYielder this
+  let dispatch = mkDispatcher update props state yield
+  pure $ render dispatch props state children
