@@ -22,12 +22,10 @@ update yield _ action _ _ =
   case action of
     Add ->
       yield \state -> snoc state (Just 0)
-    UpdateCounter i counter ->
-      case counter of
-        Just c ->
-          yield \state -> fromMaybe state $ updateAt i counter state
-        Nothing ->
-          yield \state -> fromMaybe state $ deleteAt i state
+    UpdateCounter i (Just c) ->
+      yield \state -> fromMaybe state $ updateAt i (Just c) state
+    UpdateCounter i Nothing ->
+      yield \state -> fromMaybe state $ deleteAt i state
 
 render :: forall props. Render CounterList props CounterListAction
 render dispatch _ state _ =

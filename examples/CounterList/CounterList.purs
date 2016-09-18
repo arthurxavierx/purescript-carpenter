@@ -21,12 +21,10 @@ update yield _ action _ _ =
   case action of
     Add ->
       yield \state -> snoc state 0
-    CounterAction i caction ->
-      case caction of
-        Remove ->
-          yield \state -> fromMaybe state $ deleteAt i state
-        _ ->
-          yield id
+    CounterAction i Remove ->
+      yield \state -> fromMaybe state $ deleteAt i state
+    CounterAction _ _ ->
+      yield id
 
 render :: forall props. Render CounterList props CounterListAction
 render dispatch _ state _ =

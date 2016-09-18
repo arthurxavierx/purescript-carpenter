@@ -299,12 +299,10 @@ updateCounterList yield _ action _ _ =
   case action of
     Add ->
       yield \state -> snoc state 0
-    CounterAction i caction ->
-      case caction of
-        Remove ->
-          yield \state -> fromMaybe state $ deleteAt i state
-        _ ->
-          yield id
+    CounterAction i Remove ->
+      yield \state -> fromMaybe state $ deleteAt i state
+    CounterAction _ _ ->
+      yield id
 ```
 
 For the _render_ function, the only thing missing is to render all the counters from the array and map its actions to the actions of the counter list. This can be done by using the `capture'` function from `Carpenter.Cedar`:
