@@ -4,7 +4,7 @@ import Prelude
 import Carpenter (Render, Update, ActionHandler)
 import Carpenter.Cedar (CedarClass, cedarSpec, capture')
 import React (ReactElement, createClass)
-import React.DOM (button, div', text, span')
+import React.DOM (button, div', text, h1')
 import React.DOM.Props (onClick)
 
 type Counter = Int
@@ -30,7 +30,7 @@ update yield _ action _ _ =
 render :: forall props. Render Counter props CounterAction
 render dispatch _ state _ =
   div'
-    [ span' [text (show state)]
+    [ h1' [text (show state)]
     , button [onClick \_ -> dispatch Increment] [text "+"]
     , button [onClick \_ -> dispatch Decrement] [text "-"]
     , button [onClick \_ -> dispatch Remove] [text "X"]

@@ -5,7 +5,7 @@ import Carpenter (spec, Render, Update)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (log, CONSOLE)
 import React (createClass, ReactClass)
-import React.DOM (text, button, span', div')
+import React.DOM (text, button, h1', div')
 import React.DOM.Props (onClick)
 
 type State = Int
@@ -31,7 +31,7 @@ update yield _ action _ _ =
 render :: forall props. Render State props Action
 render dispatch _ state _ =
   div'
-    [ span' [text (show state)]
+    [ h1' [text (show state)]
     , button [onClick \_ -> dispatch Increment] [text "+"]
     , button [onClick \_ -> dispatch Decrement] [text "-"]
     ]
