@@ -88,7 +88,7 @@ cedarSpec' action update render = reactSpec
       props <- React.getProps this
       state <- React.readState this
       let yield = mkYielder this
-      let dispatch = mkDispatcher update props state yield
+      let dispatch = mkDispatcher this update yield
       unsafeInterleaveEff (launchAff (update yield dispatch action props state))
 
 -- | Creates an element of the specificed React class with initial state
@@ -162,11 +162,18 @@ mkYielder this = \f ->
     let new = f old
     React.writeStateWithCallback this new (resolve new)
 
-mkDispatcher :: ∀ state action eff. Update state (CedarProps state action) action eff -> (CedarProps state action) -> state -> Yielder state eff -> Dispatcher action
-mkDispatcher update props state yield = dispatch
+mkDispatcher
+  :: ∀ state action eff
+   . React.ReactThis (CedarProps state action) state
+  -> Update state (CedarProps state action) action eff
+  -> Yielder state eff
+  -> Dispatcher action
+mkDispatcher this update yield = dispatch
   where
     dispatch :: Dispatcher action
     dispatch action = void $ unsafeInterleaveEff $ launchAff do
+      props <- liftEff $ React.getProps this
+      state <- liftEff $ React.readState this
       new <- update yield dispatch action props state
       liftEff $ case props.handler of
         Capture f -> f action
@@ -184,5 +191,5 @@ getReactRender update render this = do
   state <- React.readState this
   children <- React.getChildren this
   let yield = mkYielder this
-  let dispatch = mkDispatcher update props state yield
+  let dispatch = mkDispatcher this update yield
   pure $ render dispatch props state children
