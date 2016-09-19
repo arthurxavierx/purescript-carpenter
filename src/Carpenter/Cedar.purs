@@ -9,6 +9,7 @@ module Carpenter.Cedar
   , watchAndCapture'
   , ignore
   , ignore'
+  , mockUpdate
   , CedarProps
   , CedarHandler
   , CedarClass
@@ -17,7 +18,8 @@ module Carpenter.Cedar
 import Prelude
 import React as React
 import Carpenter (Yielder, Dispatcher, Render, Update, EventHandler)
-import Control.Monad.Aff (makeAff, launchAff)
+import Control.Monad.Aff (Aff, makeAff, launchAff)
+import Control.Monad.Aff.Unsafe (unsafeInterleaveAff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
 
@@ -152,6 +154,17 @@ ignore reactClass state children = React.createElement reactClass {initialState:
 -- | and ignores its dispatched actions and internal state.
 ignore' :: ∀ state action. React.ReactClass (CedarProps state action) -> state -> React.ReactElement
 ignore' reactClass state = React.createElement reactClass {initialState: state, handler: Ignore} []
+
+-- | Generates an update function for testing with mock `yield` and `dispatch`
+-- | functions, which do not depend on React, but return the modified state and
+-- | behave as expected.
+mockUpdate :: ∀ state action eff. Update state (CedarProps state action) action eff -> action -> state -> Aff eff state
+mockUpdate update action state = unsafeInterleaveAff (update mockYield mockDispatch action props state)
+  where
+    props = { initialState: state, handler: Ignore }
+    mockYield f = pure (f state)
+    mockDispatch :: Dispatcher action
+    mockDispatch action = void $ unsafeInterleaveEff (launchAff (update mockYield mockDispatch action props state))
 
 --
 --
