@@ -2,9 +2,10 @@ module Examples.CounterList.CounterList where
 
 import Prelude
 import Carpenter (Render, Update, spec)
+import Carpenter.Cedar (capture')
 import Data.Array (mapWithIndex, snoc, deleteAt)
 import Data.Maybe (fromMaybe)
-import Examples.CounterList.Counter (counter, CounterAction(Remove), Counter)
+import Examples.CounterList.Counter (counterComponent, CounterAction(Remove), Counter)
 import React (ReactClass, createClass)
 import React.DOM (text, button, div')
 import React.DOM.Props (onClick)
@@ -13,22 +14,22 @@ type CounterList = Array Counter
 
 data CounterListAction = Add | CounterAction Int CounterAction
 
-counterListClass :: ReactClass _
-counterListClass = createClass $ spec [0] update render
+counterListComponent :: ReactClass _
+counterListComponent = createClass $ spec [0] update render
 
 update :: forall props eff. Update CounterList props CounterListAction eff
-update yield _ action _ _ =
+update yield _ action _ state =
   case action of
     Add ->
-      yield \state -> snoc state 0
+      yield \s -> snoc s 0
     CounterAction i Remove ->
-      yield \state -> fromMaybe state $ deleteAt i state
+      yield \s -> fromMaybe s $ deleteAt i s
     CounterAction _ _ ->
-      yield id
+      pure state
 
 render :: forall props. Render CounterList props CounterListAction
 render dispatch _ state _ =
   div'
-    [ div' $ mapWithIndex (\i c -> counter (dispatch <<< CounterAction i) c) state
+    [ div' $ mapWithIndex (\i c -> capture' counterComponent (dispatch <<< CounterAction i) c) state
     , button [onClick \_ -> dispatch Add] [text "++"]
     ]
