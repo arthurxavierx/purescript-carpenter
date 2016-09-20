@@ -9,17 +9,18 @@
 
 Carpenter is a declarative library for type-safe state management in React applications with PureScript. Carpenter provides simple patterns and architectures for building React applications inspired by [Elm](http://elm-lang.org/), [Thermite](https://github.com/paf31/purescript-thermite) and [Halogen](https://github.com/slamdata/purescript-halogen).
 
+- [Module Documentation](https://pursuit.purescript.org/packages/purescript-carpenter)
+- [The Carpenter guide](GUIDE.md)
+
 ## Getting started
 
-- [The Carpenter guide](GUIDE.md)
-- [Module Documentation](https://pursuit.purescript.org/packages/purescript-carpenter)
-
-- [Counter example](examples/Counter/Counter.purs)
-- [Counter list example capturing actions](examples/CounterList/)
-- [Counter list example (Elm architecture)](examples/CounterListElm/)
-- [Writer Monad example](examples/Monad/Writer.purs)
-
-- [PureScript + Carpenter • TodoMVC](https://github.com/arthur-xavier/purescript-carpenter-todomvc)
+- Read [the Carpenter guide](GUIDE.md)
+- Take a look at some of the examples:
+  - [Counter example](examples/Counter/Counter.purs)
+  - [Counter list example capturing actions](examples/CounterList/)
+  - [Counter list example (Elm architecture)](examples/CounterListElm/)
+  - [Writer Monad example](examples/Monad/Writer.purs)
+  - [PureScript + Carpenter • TodoMVC](https://github.com/arthur-xavier/purescript-carpenter-todomvc)
 
 ## Installing
 
