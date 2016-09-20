@@ -414,3 +414,30 @@ The `ignore` (and `ignore'`) functions can be used to instantiate a child compon
 ```purescript
 ignore' childComponent childState
 ```
+
+## Testing components
+
+Testing components with Carpenter (and Cedar) is really straightforward and practical. In almost all of the cases, unit testing on interface components are done on the state management of the component, that is, on the _update_ function. For that, Carpenter and Cedar provide, each one, a function `mockUpdate`, which takes an update function and returns a new update function which mocks React's state management for simple unit testing.
+
+Below is an example of unit testing a Cedar component (from [purescript-carpenter-todomvc](https://github.com/arthur-xavier/purescript-carpenter-todomvc)):
+
+```purescript
+testTask = runTest do
+
+  suite "Task" do
+
+    test "should set edits to description on focus" do
+      let t = Just (Task.init "Lorem" 1)
+          expected = updateTask (_ { edits = Just "Lorem" }) t
+      t' <- update Task.Focus t
+      Assert.equal expected t'
+
+    test "should change description after commiting edits" do
+      let t = Just (Task.init "Lorem" 1)
+          expected = Just (Task.init "Ipsum" 1)
+      t' <- update (Task.Edit "Ipsum") t >>= update Task.Commit
+      Assert.equal expected t'
+
+  where
+    update = mockUpdate Task.update
+```
