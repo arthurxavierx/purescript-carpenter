@@ -374,3 +374,43 @@ And last but not least, as stated above, we must not use Cedar for all the compo
 counterListComponent :: R.ReactClass _
 counterListComponent = createClass $ spec [0] updateCounterList renderCounterList
 ```
+
+### `capture`
+
+The `capture` (and `capture'`) functions can be used to capture actions dispatched by child components before they're processed by the child component itself, that is, before the state of the child component gets updated. This being so allows for some performance enhancements, in the way that we save a rendering cycle because of an unnecessary state update, as the most common use for this function is to update the parent's state based on some child action, which would, in its turn, cause a re-render of the component tree.
+
+```purescript
+data ParentAction = SomeChildAction ChildAction
+
+capture' childComponent (dispatch <<< SomeChildAction) childState
+```
+
+Using the `capture` function we can do the Elm architecture with Cedar, but apart from Elm, every component is a React component, and can, thus, be distributed and reused anywhere.
+
+### `watch`
+
+The `watch` (and `watch'`) functions can be used to watch for state changes on the child component.
+
+```purescript
+data ParentAction = ChildStateChanged ChildState
+
+watch' childComponent (dispatch <<< ChildStateChanged) childState
+```
+
+### `watchAndCapture`
+
+The `watchAndCapture` (and `watchAndCapture'`) functions can be used to capture actions dispatched by child components and watch for the state of this child component after the processing of the dispatched action.
+
+```purescript
+data ParentAction = ChildStateChanged ChildAction ChildState
+
+watchAndCapture' childComponent (\action state -> dispatch $ ChildStateChanged action state) childState
+```
+
+### `ignore`
+
+The `ignore` (and `ignore'`) functions can be used to instantiate a child component without capturing its actions or watching for changes in its internal state.
+
+```purescript
+ignore' childComponent childState
+```
