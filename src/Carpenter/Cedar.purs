@@ -187,12 +187,18 @@ mkDispatcher this update yield = dispatch
     dispatch action = void $ unsafeInterleaveEff $ launchAff do
       props <- liftEff $ React.getProps this
       state <- liftEff $ React.readState this
-      new <- update yield dispatch action props state
-      liftEff $ case props.handler of
-        Capture f -> f action
-        Watch f -> f new
-        WatchAndCapture f -> f action new
-        _ -> pure unit
+      case props.handler of
+        Capture f -> void $ do
+          liftEff $ f action
+          update yield dispatch action props state
+        Watch f -> do
+          new <- update yield dispatch action props state
+          liftEff $ f new
+        WatchAndCapture f -> do
+          new <- update yield dispatch action props state
+          liftEff $ f action new
+        _ ->
+          void $ update yield dispatch action props state
 
 getReactRender
   :: ∀ state action eff
