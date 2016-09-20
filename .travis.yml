@@ -28,9 +28,8 @@ script:
   - npm run -s build
   - npm run -s examples
 after_success:
-  - npm run semantic-release
   - echo $GH_TOKEN | pulp login
-  - test -n "$TRAVIS_TAG" && ( yes | pulp publish --no-push )
+  - npm run semantic-release && (yes | pulp publish --no-push)
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
