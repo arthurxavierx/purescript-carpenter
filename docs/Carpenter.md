@@ -1,9 +1,15 @@
 ## Module Carpenter
 
+#### `CarpenterEffects`
+
+``` purescript
+type CarpenterEffects eff = (props :: ReactProps, state :: ReactState ReadWrite | eff)
+```
+
 #### `EventHandler`
 
 ``` purescript
-type EventHandler = forall eff. Eff (state :: ReactState ReadWrite | eff) Unit
+type EventHandler = forall eff. Eff (CarpenterEffects eff) Unit
 ```
 
 General purpose event handler for React events.
@@ -35,7 +41,7 @@ Takes an action of type `action` and returns an `EventHandler`.
 #### `Yielder`
 
 ``` purescript
-type Yielder state eff = (state -> state) -> Aff (state :: ReactState ReadWrite | eff) state
+type Yielder state eff = (state -> state) -> Aff (CarpenterEffects eff) state
 ```
 
 Type synonym for the `yield` function which takes a function from the
@@ -45,7 +51,7 @@ updates it.
 #### `Update`
 
 ``` purescript
-type Update state props action eff = Yielder state eff -> Dispatcher action -> action -> props -> state -> Aff (state :: ReactState ReadWrite | eff) state
+type Update state props action eff = Yielder state eff -> Dispatcher action -> action -> props -> state -> Aff (CarpenterEffects eff) state
 ```
 
 Type synonym for an action handler which takes a `Yielder` supplied by

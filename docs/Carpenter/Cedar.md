@@ -141,4 +141,14 @@ ignore' :: forall state action. ReactClass (CedarProps state action) -> state ->
 Creates an element of the specificed React class with initial state,
 and ignores its dispatched actions and internal state.
 
+#### `mockUpdate`
+
+``` purescript
+mockUpdate :: forall state action eff. Update state (CedarProps state action) action eff -> action -> state -> Aff eff state
+```
+
+Generates an update function for testing with mock `yield` and `dispatch`
+functions, which do not depend on React, but return the modified state and
+behave as expected.
+
 
