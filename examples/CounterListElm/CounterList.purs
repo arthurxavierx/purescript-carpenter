@@ -34,6 +34,6 @@ update yield _ action _ _ =
 render :: forall props. Render CounterList props CounterListAction
 render dispatch _ state _ =
   div'
-    [ div' $ mapWithIndex (\i c -> Counter.render (dispatch <<< UpdateCounter i) {} c []) state
+    [ div' $ mapWithIndex (\i c -> Counter.render (dispatch <<< UpdateCounter i) c) state
     , button [onClick \_ -> dispatch Add] [text "++"]
     ]

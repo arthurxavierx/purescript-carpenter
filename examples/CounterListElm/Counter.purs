@@ -1,8 +1,9 @@
 module Examples.CounterListElm.Counter where
 
 import Prelude
-import Carpenter (Render)
+import Carpenter (Dispatcher)
 import Data.Maybe (Maybe(..))
+import React (ReactElement)
 import React.DOM (button, div', text, h1')
 import React.DOM.Props (onClick)
 
@@ -20,8 +21,8 @@ update action state =
     Remove ->
       Nothing
 
-render :: forall props. Render Counter props CounterAction
-render dispatch _ state _ =
+render :: Dispatcher CounterAction -> Counter -> ReactElement
+render dispatch state =
   div'
     [ h1' [text (show state)]
     , button [onClick \_ -> dispatch Increment] [text "+"]
