@@ -91,6 +91,15 @@ spec' :: forall state props action eff. state -> action -> Update state props ac
 Constructs a React component spec based on an initial state,
 an initial action, an update function and a render function.
 
+#### `defaultUpdate`
+
+``` purescript
+defaultUpdate :: forall state props action eff. Update state props action eff
+```
+
+A default implementation for the update function which does not perform
+any changes to the state, that is, ignores all actions.
+
 #### `mockUpdate`
 
 ``` purescript

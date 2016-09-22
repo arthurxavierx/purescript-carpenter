@@ -8,6 +8,7 @@ module Carpenter
   , EventHandler
   , ActionHandler
   , CarpenterEffects
+  , defaultUpdate
   , mockUpdate
   ) where
 
@@ -86,6 +87,11 @@ spec' state action update render = (React.spec state (getReactRender update rend
       let yield = mkYielder this
       let dispatch = mkDispatcher this update yield
       unsafeInterleaveEff (launchAff (update yield dispatch action props state))
+
+-- | A default implementation for the update function which does not perform
+-- | any changes to the state, that is, ignores all actions.
+defaultUpdate :: ∀ state props action eff. Update state props action eff
+defaultUpdate _ _ _ _ = pure
 
 -- | Generates an update function for testing with mock `yield` and `dispatch`
 -- | functions, which do not depend on React, but return the modified state and
