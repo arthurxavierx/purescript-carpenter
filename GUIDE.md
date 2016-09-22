@@ -2,6 +2,21 @@
 
 A Carpenter application is nothing more than a React application, that is, a tree of React components, given that Carpenter only provides an interface to state management in React applications with PureScript.
 
+#### Reference
+- 1\. [Components](GUIDE.md#components)
+  - 1.1\. [Simple components](GUIDE.md#simple-components)
+  - 1.2\. [Effectful actions](GUIDE.md#effectful-actions)
+- 2\. [Combining components](GUIDE.md#combining-components)
+  - 2.1\. [Using `EventHandler` for simple event callbacks](GUIDE.md#using-eventhandler-for-simple-event-callbacks)
+- 3\. [The Elm architecture with Carpenter](GUIDE.md#the-elm-architecture-with-carpenter)
+- 4\. [The Cedar architecture](GUIDE.md#the-cedar-architecture)
+  - 4.1\. [List of counters example](GUIDE.md#list-of-counters-example)
+  - 4.2\. [`capture`](GUIDE.md#capture)
+  - 4.3\. [`watch`](GUIDE.md#watch)
+  - 4.4\. [`watchAndCapture`](GUIDE.md#watchandcapture)
+  - 4.5\. [`ignore`](GUIDE.md#ignore)
+- 5\. [Testing components](GUIDE.md#testing-components)
+
 ## Components
 
 Definitions of Carpenter components describe how to render the component given its current **state** and how to respond and mutate the state according to received **actions** dispatched by the component itself.
