@@ -19,9 +19,9 @@ import Prelude
 import React as React
 import Carpenter (Yielder, Dispatcher, Render, Update, EventHandler)
 import Control.Monad.Aff (Aff, makeAff, launchAff)
-import Control.Monad.Aff.Unsafe (unsafeInterleaveAff)
+import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
 -- | Type synonym for internal props of Cedar components.
 type CedarProps state action =
@@ -91,7 +91,7 @@ cedarSpec' action update render = reactSpec
       state <- React.readState this
       let yield = mkYielder this
       let dispatch = mkDispatcher this update yield
-      unsafeInterleaveEff (launchAff (update yield dispatch action props state))
+      unsafeCoerceEff (launchAff (update yield dispatch action props state))
 
 -- | Creates an element of the specificed React class with initial state
 -- | and children, and captures its dispatched actions.
@@ -158,13 +158,13 @@ ignore' reactClass state = React.createElement reactClass {initialState: state, 
 -- | Generates an update function for testing with mock `yield` and `dispatch`
 -- | functions, which do not depend on React, but return the modified state and
 -- | behave as expected.
-mockUpdate :: ∀ state action eff. Update state (CedarProps state action) action eff -> action -> state -> Aff eff state
-mockUpdate update action state = unsafeInterleaveAff (update mockYield mockDispatch action props state)
+mockUpdate :: ∀ st act eff. Update st (CedarProps st act) act eff -> act -> st -> Aff eff st
+mockUpdate update action state = unsafeCoerceAff (update mockYield mockDispatch action props state)
   where
     props = { initialState: state, handler: Ignore }
     mockYield f = pure (f state)
-    mockDispatch :: Dispatcher action
-    mockDispatch action = void $ unsafeInterleaveEff (launchAff (update mockYield mockDispatch action props state))
+    mockDispatch :: Dispatcher act
+    mockDispatch action' = void $ unsafeCoerceEff (launchAff (update mockYield mockDispatch action' props state))
 
 --
 --
@@ -184,7 +184,7 @@ mkDispatcher
 mkDispatcher this update yield = dispatch
   where
     dispatch :: Dispatcher action
-    dispatch action = void $ unsafeInterleaveEff $ launchAff do
+    dispatch action = void $ unsafeCoerceEff $ launchAff do
       props <- liftEff $ React.getProps this
       state <- liftEff $ React.readState this
       case props.handler of

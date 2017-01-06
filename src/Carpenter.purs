@@ -15,10 +15,10 @@ module Carpenter
 import Prelude
 import React as React
 import Control.Monad.Aff (launchAff, makeAff, Aff)
-import Control.Monad.Aff.Unsafe (unsafeInterleaveAff)
+import Control.Monad.Aff.Unsafe (unsafeCoerceAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Unsafe (unsafeInterleaveEff)
+import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
 
 type CarpenterEffects eff = (props :: React.ReactProps, state :: React.ReactState React.ReadWrite | eff)
 
@@ -77,16 +77,16 @@ spec state update render = React.spec state (getReactRender update render)
 
 -- | Constructs a React component spec based on an initial state,
 -- | an initial action, an update function and a render function.
-spec' :: ∀ state props action eff. state -> action -> Update state props action eff -> Render state props action -> React.ReactSpec props state eff
+spec' :: ∀ st ps act eff. st -> act -> Update st ps act eff -> Render st ps act -> React.ReactSpec ps st eff
 spec' state action update render = (React.spec state (getReactRender update render)) { componentWillMount = componentWillMount }
   where
-    componentWillMount :: React.ComponentWillMount props state eff
+    componentWillMount :: React.ComponentWillMount ps st eff
     componentWillMount this = void $ do
-      props <- React.getProps this
-      state <- React.readState this
+      props' <- React.getProps this
+      state' <- React.readState this
       let yield = mkYielder this
       let dispatch = mkDispatcher this update yield
-      unsafeInterleaveEff (launchAff (update yield dispatch action props state))
+      unsafeCoerceEff (launchAff (update yield dispatch action props' state'))
 
 -- | A default implementation for the update function which does not perform
 -- | any changes to the state, that is, ignores all actions.
@@ -96,12 +96,12 @@ defaultUpdate _ _ _ _ = pure
 -- | Generates an update function for testing with mock `yield` and `dispatch`
 -- | functions, which do not depend on React, but return the modified state and
 -- | behave as expected.
-mockUpdate :: ∀ state props action eff. Update state props action eff -> action -> props -> state -> Aff eff state
-mockUpdate update action props state = unsafeInterleaveAff (update mockYield mockDispatch action props state)
+mockUpdate :: ∀ st ps act eff. Update st ps act eff -> act -> ps -> st -> Aff eff st
+mockUpdate update action props state = unsafeCoerceAff (update mockYield mockDispatch action props state)
   where
     mockYield f = pure (f state)
-    mockDispatch :: Dispatcher action
-    mockDispatch action = void $ unsafeInterleaveEff (launchAff (update mockYield mockDispatch action props state))
+    mockDispatch :: Dispatcher act
+    mockDispatch action' = void $ unsafeCoerceEff (launchAff (update mockYield mockDispatch action' props state))
 
 --
 --
@@ -121,7 +121,7 @@ mkDispatcher
 mkDispatcher this update yield = dispatch
   where
     dispatch :: Dispatcher action
-    dispatch action = void $ unsafeInterleaveEff $ launchAff do
+    dispatch action = void $ unsafeCoerceEff $ launchAff do
       props <- liftEff $ React.getProps this
       state <- liftEff $ React.readState this
       update yield dispatch action props state

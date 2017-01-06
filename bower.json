@@ -19,7 +19,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "purescript-react": "^1.1.0",
-    "purescript-aff": "^1.1.0"
+    "purescript-react": "^2.0.0",
+    "purescript-aff": "^2.0.2"
   }
 }
